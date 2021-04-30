@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "818874198703",
+    "project_id": "taskmanagerfefu",
+    "storage_bucket": "taskmanagerfefu.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:818874198703:android:eaaa502e1a917c926d825a",
+        "android_client_info": {
+          "package_name": "com.fefuproject.timemanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "818874198703-h36f5lmbq1dqieeajlg1craoravf6h11.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fefuproject.timemanager",
+            "certificate_hash": "7b41aaa79f3754b70e98e642b1e00772738f5930"
+          }
+        },
+        {
+          "client_id": "818874198703-t30eptfscplo2fb400k31k7ojs7fgbkf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDf9NYGfxDl6wYCsERoGAR5keQ63tIaOtY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "818874198703-t30eptfscplo2fb400k31k7ojs7fgbkf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
