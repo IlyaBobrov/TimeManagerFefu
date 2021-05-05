@@ -7,4 +7,13 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!--PaletteApp-->
+    <color name="purple_01">#673AB7</color>
+    <color name="purple_02">#512DA8</color>
+    <color name="purple_03">#D1C4E9</color>
+    <color name="green_01">#8BC34A</color>
+    <color name="black_01">#212121</color>
+    <color name="grey_01">#757575</color>
+    <color name="grey_02">#BDBDBD</color>
 </resources>
