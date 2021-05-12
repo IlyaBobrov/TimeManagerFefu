@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph_kotlin"
+    app:startDestination="@id/EmailPasswordFragment">
+
+
+    <action
+        android:id="@+id/action_emailpassword"
+        app:destination="@id/EmailPasswordFragment" />
+
+    <fragment
+        android:id="@+id/EmailPasswordFragment"
+        android:name="com.fefuproject.timemanager.auth.fragments.EmailPasswordFragment"
+        tools:layout="@layout/fragment_email_password">
+
+        <action
+            android:id="@+id/action_emailpassword_to_mfa"
+            app:destination="@id/MultiFactorFragment" />
+
+        <action
+            android:id="@+id/action_registration"
+            app:destination="@id/RegistrationFragment"
+            app:popUpTo="@id/EmailPasswordFragment"/>
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/RegistrationFragment"
+        android:name="com.fefuproject.timemanager.auth.fragments.RegistrationFragment"
+        tools:layout="@layout/fragment_registration"/>
+
+    <fragment
+        android:id="@+id/MultiFactorSignInFragment"
+        android:name="com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorSignInFragment"
+        tools:layout="@layout/fragment_multi_factor_sign_in" />
+
+    <fragment
+        android:id="@+id/MultiFactorEnrollFragment"
+        android:name="com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorEnrollFragment"
+        tools:layout="@layout/fragment_phone_auth" />
+
+    <fragment
+        android:id="@+id/MultiFactorUnenrollFragment"
+        android:name="com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorUnenrollFragment"
+        tools:layout="@layout/fragment_multi_factor_sign_in" />
+
+    <fragment
+        android:id="@+id/MultiFactorFragment"
+        android:name="com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorFragment"
+        tools:layout="@layout/fragment_multi_factor">
+
+        <action
+            android:id="@+id/action_mfa_to_emailpassword"
+            app:destination="@id/EmailPasswordFragment" />
+
+        <action
+            android:id="@+id/action_mfa_to_enroll"
+            app:destination="@id/MultiFactorEnrollFragment" />
+
+        <action
+            android:id="@+id/action_mfa_to_unenroll"
+            app:destination="@id/MultiFactorUnenrollFragment" />
+
+        <action
+            android:id="@+id/action_mfa_to_mfasignin"
+            app:destination="@id/MultiFactorSignInFragment" />
+
+    </fragment>
+
+</navigation>
