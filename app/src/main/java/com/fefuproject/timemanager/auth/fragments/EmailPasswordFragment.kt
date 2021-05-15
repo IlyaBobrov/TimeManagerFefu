@@ -11,10 +11,12 @@ import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
 import com.fefuproject.timemanager.MainActivity.Companion.mainAuth
+import com.fefuproject.timemanager.MainActivity.Companion.sharedPreferences
 import com.fefuproject.timemanager.R
 import com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorFragment
 import com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorSignInFragment
 import com.fefuproject.timemanager.base.BaseFragment
+import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
 import com.fefuproject.timemanager.databinding.FragmentEmailPasswordBinding
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -36,42 +38,25 @@ class EmailPasswordFragment : BaseFragment() {
         get() = _binding!!
 
     private lateinit var googleSignInClient: GoogleSignInClient
+    private var offline: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentEmailPasswordBinding.inflate(inflater, container, false)
         return binding.root
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setProgressBar(binding.progressBar)
-
-        with(binding) {
-            emailSignInButton.setOnClickListener {
-                val email = binding.fieldEmail.text.toString()
-                val password = binding.fieldPassword.text.toString()
-                signIn(email, password)
-            }
-            emailCreateAccountButton.setOnClickListener {
-                val email = binding.fieldEmail.text.toString()
-                val password = binding.fieldPassword.text.toString()
-                findNavController().navigate(R.id.RegistrationFragment)
-//                findNavController().navigate(
-//                    R.id.action_registration,
-//                    bundleOf("email" to email, "password" to password)
-//                )
-//                createAccount(email, password)
-            }
-            signInWithGoogleButton.setOnClickListener {
-                signInWithGoogle()
-            }
-        }
-
+        onClick()
+        sharedPreferences.edit().putBoolean(APP_PREF_OFFLINE, false).apply()
+        Log.d(TAG, "onViewCreated: ${sharedPreferences.getBoolean(APP_PREF_OFFLINE, false)}")
+        //для авториззации через гугл
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -79,9 +64,28 @@ class EmailPasswordFragment : BaseFragment() {
         googleSignInClient = GoogleSignIn.getClient(requireContext(), gso)
     }
 
-    //обработчик кнопки войти с Google
-    private fun signInWithGoogle() {
-        startActivityForResult(googleSignInClient.signInIntent, RC_SIGN_IN)
+    private fun onClick() {
+        with(binding) {
+            emailSignInButton.setOnClickListener {
+                val email = binding.fieldEmail.text.toString()
+                val password = binding.fieldPassword.text.toString()
+                signIn(email, password)
+            }
+            emailCreateAccountButton.setOnClickListener {
+//                val email = binding.fieldEmail.text.toString()
+//                val password = binding.fieldPassword.text.toString()
+                findNavController().navigate(R.id.RegistrationFragment)
+            }
+            //обработчик кнопки войти с Google
+            signInWithGoogleButton.setOnClickListener {
+                startActivityForResult(googleSignInClient.signInIntent, RC_SIGN_IN)
+            }
+            signInOffline.setOnClickListener {
+                offline = true
+                updateUI(null)
+            }
+
+        }
     }
 
     //принимаем результат входа с Google
@@ -95,6 +99,7 @@ class EmailPasswordFragment : BaseFragment() {
                 firebaseAuthWithGoogle(account.idToken!!)
             } catch (e: ApiException) {
                 Log.w(TAG, "Google sign in failed", e)
+                Toast.makeText(context, "Error: $e", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -115,15 +120,14 @@ class EmailPasswordFragment : BaseFragment() {
             }
     }
 
-    private fun revokeAccess() {
+    /*private fun revokeAccess() {
         // Firebase sign out
         mainAuth.signOut()
-
         // Google revoke access
         googleSignInClient.revokeAccess().addOnCompleteListener(requireActivity()) {
             updateUI(null)
         }
-    }
+    }*/
 
     /*private fun signOut() {
         // Firebase sign out
@@ -148,37 +152,11 @@ class EmailPasswordFragment : BaseFragment() {
         Log.d(TAG, "onResume: ")
     }
 
-    fun startHome() {
+    private fun startHome() {
         Log.d(TAG, "startHome: ")
 //        findNavController().popBackStack()
         findNavController().setGraph(R.navigation.nav_graph_main)
     }
-
-    /*private fun createAccount(email: String, password: String) {
-        Log.d(TAG, "createAccount:$email")
-        if (!validateForm()) return
-
-        showProgressBar()
-
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener(requireActivity()) { task ->
-                if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
-                    Log.d(TAG, "createUserWithEmail:success")
-                    val user = auth.currentUser
-                    updateUI(user)
-                } else {
-                    // If sign in fails, display a message to the user.
-                    Log.w(TAG, "createUserWithEmail:failure", task.exception)
-                    Toast.makeText(
-                        context, "Authentication failed.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    updateUI(null)
-                }
-                hideProgressBar()
-            }
-    }*/
 
     private fun signIn(email: String, password: String) {
         Log.d(TAG, "signIn:$email")
@@ -189,8 +167,7 @@ class EmailPasswordFragment : BaseFragment() {
             .addOnCompleteListener(requireActivity()) { task ->
                 if (task.isSuccessful) {
                     Log.d(TAG, "signInWithEmail:success")
-                    val user = mainAuth.currentUser
-                    updateUI(user)
+                    updateUI(mainAuth.currentUser)
                 } else {
                     Log.w(TAG, "signInWithEmail:failure", task.exception)
                     Toast.makeText(
@@ -244,7 +221,7 @@ class EmailPasswordFragment : BaseFragment() {
     }*/
 
     //обновить данные
-    private fun reload() {
+    /*private fun reload() {
         mainAuth.currentUser!!.reload().addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 updateUI(mainAuth.currentUser)
@@ -254,27 +231,25 @@ class EmailPasswordFragment : BaseFragment() {
                 Toast.makeText(context, "Failed to reload user.", Toast.LENGTH_SHORT).show()
             }
         }
-    }
+    }*/
 
     //проверка ввода
     private fun validateForm(): Boolean {
         var valid = true
-
         val email = binding.fieldEmail.text.toString()
         if (TextUtils.isEmpty(email)) {
-            binding.fieldEmail.error = "Required."
+            binding.fieldEmail.error = getString(R.string.required)
             valid = false
         } else {
             binding.fieldEmail.error = null
         }
         val password = binding.fieldPassword.text.toString()
         if (TextUtils.isEmpty(password)) {
-            binding.fieldPassword.error = "Required."
+            binding.fieldPassword.error = getString(R.string.required)
             valid = false
         } else {
             binding.fieldPassword.error = null
         }
-
         return valid
     }
 
@@ -282,6 +257,11 @@ class EmailPasswordFragment : BaseFragment() {
     private fun updateUI(user: FirebaseUser?) {
         Log.d(TAG, "updateUI: ")
         hideProgressBar()
+        if (offline) {
+            sharedPreferences.edit().putBoolean(APP_PREF_OFFLINE, true).apply()
+            startHome()
+            return
+        }
         if (user != null) {
             binding.status.text = getString(
                 R.string.emailpassword_status_fmt,
@@ -289,7 +269,8 @@ class EmailPasswordFragment : BaseFragment() {
             )
             binding.detail.text = getString(R.string.firebase_status_fmt, user.uid)
             if (!user.isEmailVerified) {
-                Toast.makeText(context, "Не забудьте подтвердить аккаунт", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Не забудьте подтвердить аккаунт", Toast.LENGTH_SHORT)
+                    .show()
             }
             startHome()
         } else {
@@ -299,7 +280,7 @@ class EmailPasswordFragment : BaseFragment() {
         }
     }
 
-    //непонятно зачем
+    //непонятно зачем (из документации файры)
     private fun checkForMultiFactorFailure(e: Exception) {
         // Multi-factor authentication with SMS is currently only available for
         // Google Cloud Identity Platform projects. For more information:

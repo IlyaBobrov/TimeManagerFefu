@@ -7,11 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.OnBackPressedDispatcher
-import androidx.navigation.fragment.findNavController
 import com.fefuproject.timemanager.MainActivity
 import com.fefuproject.timemanager.MainActivity.Companion.mainAuth
-import com.fefuproject.timemanager.R
 import com.fefuproject.timemanager.base.BaseFragment
 import com.fefuproject.timemanager.databinding.FragmentRegistrationBinding
 import com.google.firebase.auth.FirebaseAuth
