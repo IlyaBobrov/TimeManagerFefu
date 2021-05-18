@@ -6,16 +6,8 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/itemTitleDate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:layout_marginStart="15dp"
-        android:textSize="16dp"
-        tools:text="Сегодня"/>
-
     <androidx.cardview.widget.CardView
+        android:id="@+id/itemCardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
@@ -45,6 +37,7 @@
                 tools:text="Работа" />
 
             <TextView
+                android:id="@+id/itemMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"

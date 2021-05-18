@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.fefuproject.timemanager.main.home.fragments.HomeFragment"
+        android:name="com.fefuproject.timemanager.main.home.view.HomeFragment"
         android:label="HomeFragment"
         tools:layout="@layout/fragment_home">
 
