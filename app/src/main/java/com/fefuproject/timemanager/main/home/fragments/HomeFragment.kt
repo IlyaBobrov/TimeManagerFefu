@@ -1,26 +1,25 @@
 package com.fefuproject.timemanager.main.home.fragments
 
+import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.BackgroundColorSpan
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import com.fefuproject.timemanager.MainActivity
 import com.fefuproject.timemanager.MainActivity.Companion.mainAuth
-import com.fefuproject.timemanager.MainActivity.Companion.sharedPreferences
-import com.fefuproject.timemanager.R
 import com.fefuproject.timemanager.base.BaseFragment
-import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
 import com.fefuproject.timemanager.databinding.FragmentHomeBinding
+import kotlinx.android.synthetic.main.fragment_registration.*
 
 class HomeFragment : BaseFragment() {
 
     companion object {
         private const val TAG = "HOME_TAG"
     }
-
-    private var statusOffline: Boolean = false
 
     private var _binding: FragmentHomeBinding? = null
     private val binding: FragmentHomeBinding
@@ -30,52 +29,21 @@ class HomeFragment : BaseFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        onClick()
-        statusOffline = sharedPreferences.getBoolean(APP_PREF_OFFLINE, false)
-        if (statusOffline)
-            Toast.makeText(context, "Оффлайн режим", Toast.LENGTH_SHORT).show()
-        else
-            Toast.makeText(context, mainAuth.currentUser?.email, Toast.LENGTH_SHORT).show()
-        Log.d(TAG, "onViewCreated: $statusOffline")
-        initToolBar()
+        onListener()
+
     }
 
-    private fun initToolBar() {
-        binding.topAppBar.setNavigationOnClickListener {
-            // Handle navigation icon press
-            Toast.makeText(context, getString(R.string.in_develop), Toast.LENGTH_SHORT).show()
-        }
-        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.tbExit -> {
-                    (requireActivity() as MainActivity).getOut()
-                    true
-                }
-                R.id.tbComplete -> {
-                    Toast.makeText(context, getString(R.string.in_develop), Toast.LENGTH_SHORT)
-                        .show()
-                    true
-                }
-                R.id.tbSort -> {
-                    Toast.makeText(context, getString(R.string.in_develop), Toast.LENGTH_SHORT)
-                        .show()
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
-    fun onClick() {
-        binding.fabHomeAdd.setOnClickListener {
-            Toast.makeText(context, getString(R.string.in_develop), Toast.LENGTH_SHORT).show()
+    fun onListener() {
+        binding.homeOut.setOnClickListener {
+            (requireActivity() as MainActivity).getOut()
         }
     }
 }

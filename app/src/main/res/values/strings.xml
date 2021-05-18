@@ -42,7 +42,9 @@
     <string name="create_account">Create Account</string>
     <string name="registration">Регистрация</string>
     <string name="blablabla">Все права защищены 2021</string>
-    <string name="sign_in_with_google">Войти с помощью Google</string>
+    <string name="bla_registration">У вас ещё нет аккаунта?</string>
+    <string name="link_registration">Зарегистрируйтесь.</string>
+    <string name="sign_in_with_google">Войти через Google</string>
     <string name="send_link">Send Link</string>
     <string name="sign_out">Sign Out</string>
     <string name="verify_email">Verify</string>
@@ -52,8 +54,8 @@
     <string name="signed_in">Signed In</string>
     <string name="signed_out">Signed Out</string>
     <string name="token_null">Token: null</string>
-    <string name="hint_email">Email</string>
-    <string name="hint_password">Password</string>
+    <string name="hint_email">Email, номер телефона или имя пользователя</string>
+    <string name="hint_password">Пароль</string>
     <string name="desc_firebase_lockup">Firebase logo and name</string>
     <string name="auth_failed">Authentication failed</string>
     <string name="start_phone_auth">Start</string>
@@ -110,9 +112,5 @@
 
     <string name="error_sign_in_failed">Sign in failed, see logs for details.</string>
     <string name="multi_factor_signed_out">You are not signed in. To use this sample, first navigate to the Email/Password example to sign in and then return here to enroll in multi-factor auth.</string>
-    <string name="required">Required.</string>
-    <string name="Exit">Выйти</string>
-    <string name="Create">Создать</string>
-    <string name="in_develop">В разработке</string>
 
 </resources>
