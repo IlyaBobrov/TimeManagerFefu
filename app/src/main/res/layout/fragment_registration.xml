@@ -57,25 +57,31 @@
         <EditText
             android:id="@+id/fieldRegEmail"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
+            android:layout_height="46dp"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/border"
             android:hint="@string/hint_email"
-            android:inputType="textEmailAddress" />
+            android:inputType="textEmailAddress"
+            android:padding="5dp" />
 
         <EditText
             android:id="@+id/fieldRegPassword"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="46dp"
             android:layout_marginBottom="15dp"
+            android:background="@drawable/border"
             android:hint="@string/hint_password"
-            android:inputType="textPassword" />
+            android:inputType="textPassword"
+            android:padding="5dp" />
 
         <Button
             android:id="@+id/regButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="240dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center_horizontal"
             android:text="@string/registration"
-            android:theme="@style/ThemeOverlay.MyDarkButton" />
+            android:backgroundTint="@color/primary_dark"
+            />
 
     </LinearLayout>
 
@@ -85,5 +91,5 @@
         android:layout_gravity="center|top"
         android:layout_weight="0.2"
         android:gravity="center"
-        android:text="@string/blablabla" />
+        android:text="@string/blablabla"/>
 </LinearLayout>
