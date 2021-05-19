@@ -143,7 +143,7 @@ class HomeFragment : BaseFragment(), HomeView, HomeAdapter.HomeOnItemClickListen
             ) {
                 Toast.makeText(
                     requireContext(),
-                    "you selected: " + arrayList.get(position),
+                    "Вы выбрали: " + arrayList.get(position),
                     Toast.LENGTH_SHORT
                 ).show()
             }
