@@ -22,6 +22,7 @@ class RegistrationFragment : BaseFragment() {
         private const val TAG = "AUTH_TAG"
     }
 
+//    njfvf
     private lateinit var auth: FirebaseAuth
 
     private var _binding: FragmentRegistrationBinding? = null
