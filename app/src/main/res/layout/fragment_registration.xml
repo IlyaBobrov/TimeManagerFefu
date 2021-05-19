@@ -79,9 +79,8 @@
             android:layout_width="240dp"
             android:layout_height="64dp"
             android:layout_gravity="center_horizontal"
-            android:text="@string/registration"
             android:backgroundTint="@color/primary_dark"
-            />
+            android:text="@string/registration" />
 
     </LinearLayout>
 
@@ -91,5 +90,5 @@
         android:layout_gravity="center|top"
         android:layout_weight="0.2"
         android:gravity="center"
-        android:text="@string/blablabla"/>
+        android:text="@string/blablabla" />
 </LinearLayout>
