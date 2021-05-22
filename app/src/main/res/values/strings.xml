@@ -41,8 +41,7 @@
     <string name="sign_in">Войти</string>
     <string name="create_account">Create Account</string>
     <string name="registration">Зарегистрироваться</string>
-    <string name="blablabla">Нажимая кнопку “Зарегистрироваться” вы соглашаетесь с Условиями
-        использования и Политикой конфиденциальности</string>
+    <string name="blablabla">Все права защищены 2021</string>
     <string name="bla_registration">У вас ещё нет аккаунта?</string>
     <string name="link_registration">Зарегистрируйтесь.</string>
     <string name="sign_in_with_google">Войти через Google</string>
