@@ -121,5 +121,7 @@
     <string name="today">Сегодня</string>
     <string name="Yesterday">Вчера</string>
     <string name="Tomorrow">Завтра</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

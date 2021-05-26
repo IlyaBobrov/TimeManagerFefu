@@ -6,8 +6,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
-import androidx.room.Room
-import com.fefuproject.timemanager.App
 import com.fefuproject.timemanager.R
 import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
 import com.fefuproject.timemanager.components.Constants.APP_PREF_SETTINGS
@@ -31,21 +29,18 @@ class MainActivity : AppCompatActivity() {
 
         sharedPreferences = getSharedPreferences(APP_PREF_SETTINGS, MODE_PRIVATE)
         Log.d("TAG", "!!! ${sharedPreferences.getBoolean(APP_PREF_OFFLINE, false)} ")
-
         onClick()
-
-        connectDB()
-
+//        connectDB()
     }
 
     private lateinit var database: AppDatabase
 
-    fun getDB() : AppDatabase = database
+    fun getDB(): AppDatabase = database
 
-    private fun connectDB() {
-        database = Room.databaseBuilder(this, AppDatabase::class.java, "database-note")
+    /*private fun connectDB() {
+        database = Room.databaseBuilder(this, AppDatabase::class.java, DATABASE_NAME)
             .build()
-    }
+    }*/
 
     private fun onClick() {
         if (mainAuth.currentUser == null) {

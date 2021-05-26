@@ -10,6 +10,7 @@ import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.ArrayAdapter
 import android.widget.SpinnerAdapter
 import android.widget.Toast
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fefuproject.timemanager.R
@@ -17,12 +18,11 @@ import com.fefuproject.timemanager.base.BaseFragment
 import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
 import com.fefuproject.timemanager.databinding.FragmentHomeBinding
 import com.fefuproject.timemanager.logic.db.AppDatabase
+import com.fefuproject.timemanager.logic.models.CategoryModel
 import com.fefuproject.timemanager.logic.models.NoteModel
 import com.fefuproject.timemanager.ui.MainActivity
-import com.fefuproject.timemanager.ui.MainActivity.Companion.mainAuth
 import com.fefuproject.timemanager.ui.MainActivity.Companion.sharedPreferences
-import com.fefuproject.timemanager.ui.main.home.adapters.*
-import com.fefuproject.timemanager.ui.main.home.adapters.ListItem.Companion.TYPE_NOTE
+import com.fefuproject.timemanager.ui.main.home.adapters.HomeAdapter
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -33,18 +33,23 @@ class HomeFragment : BaseFragment(),
 
     companion object {
         private const val TAG = "HOME_TAG"
+        const val CREATE_TASK = "CREATE_TASK"
+        const val NOTE_TASK = "NOTE_TASK"
+
+        const val KEY_CREATE = "KEY_CREATE"
+        const val KEY_EDIT = "KEY_EDIT"
+        const val KEY_DEFAULT = "KEY_DEFAULT"
     }
 
-    lateinit var db: AppDatabase
+    private lateinit var db: AppDatabase
+    private lateinit var data: List<NoteModel>
+
     private var statusOffline: Boolean = false
     private val adapterHome = HomeAdapter(this)
     private var _binding: FragmentHomeBinding? = null
-    var note = mutableListOf<ListItem>()
-    lateinit var data: List<NoteModel>
 
     private val binding: FragmentHomeBinding
         get() = _binding!!
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,14 +62,14 @@ class HomeFragment : BaseFragment(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        onClick()
         statusOffline = sharedPreferences.getBoolean(APP_PREF_OFFLINE, false)
-        if (statusOffline) Toast.makeText(context, "Оффлайн режим", Toast.LENGTH_SHORT).show()
-        else Toast.makeText(context, mainAuth.currentUser?.email, Toast.LENGTH_SHORT).show()
         initToolBar()
         initSwipeAndScroll()
+        initMainRecycler()
         initDB()
         initSpinner()
+        onListeners()
+        Log.d(TAG, "onViewCreated: ")
     }
 
     private fun initSwipeAndScroll() {
@@ -84,31 +89,33 @@ class HomeFragment : BaseFragment(),
         binding.rvHome.addOnScrollListener(rvs)
     }
 
-
     private fun initDB() {
+        db = AppDatabase.invoke(requireContext())
 
-        db = (requireActivity() as MainActivity).getDB()
+        GlobalScope.launch {
+            Log.d(TAG, "initDB: 1")
 
-        /*GlobalScope.launch {
-            db.noteModelDao().insertAll(
-                    NoteModel(1, "Работа", "2021-05-17", "Заметка!", false),
-            )
-        }*/
-
+            val data = db.noteModelDao().getAll()
+            if (data.isEmpty()) {
+                db.noteModelDao().insertAll(
+                    NoteModel("1", "Заголовок", "Описание", "Работа", "2021-05-17", null, false)
+                )
+                Log.d(TAG, "initDB: 2")
+                db.categoryModelDao().insertAll(CategoryModel("0", "Работа"))
+                db.categoryModelDao().insertAll(CategoryModel("1", "Учеба"))
+                db.categoryModelDao().insertAll(CategoryModel("2", "Быт"))
+            }
+        }
         GlobalScope.launch {
             data = db.noteModelDao().getAll()
             Log.d(TAG, "initDB: $data")
-            initMainRecycler()
+            setListData(data)
         }
 
     }
 
-    override fun getDb(notes: List<NoteModel>) {
-        Log.d(TAG, "getDb")
-        Log.d(TAG, "getDb: $notes")
-    }
 
-    private fun convertToCategoryList(list: List<Note>): MutableList<ListItem> {
+    /*private fun convertToCategoryList(list: List<Note>): MutableList<ListItem> {
         //разбиваем на категории
         val dateList = mutableListOf<String>()
         val categoryList = mutableListOf<ListItem>()
@@ -130,15 +137,13 @@ class HomeFragment : BaseFragment(),
         }
         Log.e(TAG, "initRV: $categoryList")
         return categoryList
-    }
+    }*/
 
     private fun initMainRecycler() {
         binding.rvHome.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = adapterHome
         }
-
-        setListData(data)
     }
 
     private fun updateHomeInfo() {
@@ -187,7 +192,6 @@ class HomeFragment : BaseFragment(),
         arrayList.add("Работа")
         arrayList.add("Учеба")
         arrayList.add("Быт")
-
         val spinnerAdapter: SpinnerAdapter = ArrayAdapter(
             this.requireContext(), R.layout.custom_spinner_item, arrayList
         )
@@ -197,22 +201,21 @@ class HomeFragment : BaseFragment(),
 
             override fun onItemSelected(
                 parent: AdapterView<*>?,
-                view: View,
+                view: View?,
                 position: Int,
                 id: Long
             ) {
                 Toast.makeText(
                     requireContext(),
-                    "Вы выбрали: " + arrayList.get(position),
+                    "Вы выбрали: " + arrayList[position],
                     Toast.LENGTH_SHORT
                 ).show()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-
+                Toast.makeText(requireContext(), "Ничего не выбано", Toast.LENGTH_SHORT).show()
             }
         }
-
     }
 
     private fun initToolBar() {
@@ -241,19 +244,55 @@ class HomeFragment : BaseFragment(),
         }
     }
 
-
-    fun onClick() {
+    private fun onListeners() {
         binding.fabHomeAdd.setOnClickListener {
-            Toast.makeText(context, getString(R.string.in_develop), Toast.LENGTH_SHORT).show()
+            val bundle = Bundle()
+            bundle.putString(CREATE_TASK, KEY_CREATE)
+            findNavController().navigate(R.id.action_homeFragment_to_taskFragment, args = bundle)
         }
+
+        //обмен данными с TaskFragment
+        with(findNavController().currentBackStackEntry) {
+            this?.savedStateHandle?.getLiveData<NoteModel>(KEY_CREATE)
+                ?.observe(viewLifecycleOwner)
+                {
+                    Log.d(TAG, "onListeners: KEY_CREATE")
+                    Toast.makeText(
+                        requireContext(),
+                        "Create note ${it.description}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    //todo добавить заметку в бд и обновить список
+
+                    savedStateHandle.remove<NoteModel>(KEY_CREATE)
+                }
+            this?.savedStateHandle?.getLiveData<NoteModel>(KEY_EDIT)?.observe(viewLifecycleOwner) {
+                Log.d(TAG, "onListeners: KEY_EDIT")
+                Toast.makeText(requireContext(), it.description, Toast.LENGTH_SHORT).show()
+
+                savedStateHandle.remove<NoteModel>(KEY_EDIT)
+            }
+
+        }
+
+//        findNavController().currentBackStackEntry?.savedStateHandle?.
     }
 
-    override fun onItemClick(position: Int) {
-        Toast.makeText(context, "hi", Toast.LENGTH_SHORT).show()
+    override fun onItemClick(item: NoteModel) {
+        val bundle = Bundle()
+        bundle.putString(CREATE_TASK, KEY_EDIT)
+        bundle.putParcelable(NOTE_TASK, item)
+        findNavController().navigate(R.id.action_homeFragment_to_taskFragment, args = bundle)
     }
 
     override fun setListData(data: List<NoteModel>) {
+        Log.d(TAG, "setListData")
         adapterHome.submitList(data)
+        adapterHome.notifyDataSetChanged()
+    }
+
+    override fun getDb(notes: List<NoteModel>) {
+        Log.d(TAG, "getDb: $notes")
     }
 
 }

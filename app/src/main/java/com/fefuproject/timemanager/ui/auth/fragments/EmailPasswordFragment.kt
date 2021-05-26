@@ -72,8 +72,6 @@ class EmailPasswordFragment : BaseFragment() {
                 signIn(email, password)
             }
             emailCreateAccountButton.setOnClickListener {
-//                val email = binding.fieldEmail.text.toString()
-//                val password = binding.fieldPassword.text.toString()
                 findNavController().navigate(R.id.RegistrationFragment)
             }
             //обработчик кнопки войти с Google
@@ -84,7 +82,6 @@ class EmailPasswordFragment : BaseFragment() {
                 offline = true
                 updateUI(null)
             }
-
         }
     }
 
@@ -132,7 +129,6 @@ class EmailPasswordFragment : BaseFragment() {
     /*private fun signOut() {
         // Firebase sign out
         auth.signOut()
-
         // Google sign out
         googleSignInClient.signOut().addOnCompleteListener(requireActivity()) {
             updateUI(null)

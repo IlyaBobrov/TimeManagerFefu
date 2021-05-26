@@ -17,7 +17,7 @@ interface NoteModelDao {
     @Query("SELECT * FROM NoteModel WHERE complete LIKE :complete LIMIT 1")
     fun findByComplete(complete: Boolean): NoteModel
 
-    @Query("SELECT * FROM NoteModel WHERE date LIKE :date LIMIT 1")
+    @Query("SELECT * FROM NoteModel WHERE date_start LIKE :date LIMIT 1")
     fun findByCDate(date: String): NoteModel
 
     @Insert

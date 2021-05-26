@@ -2,45 +2,84 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
     android:id="@+id/itemContainer"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clItemContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="5dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="10dp">
 
+        <CheckBox
+            android:id="@+id/itemCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:checked="true" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:id="@+id/itemDateContainer"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/clItemContainer"
-            android:padding="10dp"
-            android:paddingStart="20dp">
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
-                android:id="@+id/itemDate"
+                android:id="@+id/itemDateStart"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="16.08 - 17.09" />
+                android:layout_gravity="end"
+                tools:text="Начало: 16.08" />
 
             <TextView
-                android:id="@+id/itemCategory"
+                android:id="@+id/itemDateEnd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="Работа" />
+                android:layout_gravity="end"
+                tools:text="Конец: 17.09" />
+        </LinearLayout>
 
-            <TextView
-                android:id="@+id/itemMessage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/itemCategory"
-                tools:text="Этот текст нужно ограничить по длинне" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/itemCategory"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            app:layout_constraintEnd_toStartOf="@+id/itemDateContainer"
+            app:layout_constraintStart_toEndOf="@+id/itemCheckBox"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Работа" />
+
+        <TextView
+            android:id="@+id/itemTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/itemDateContainer"
+            app:layout_constraintStart_toEndOf="@+id/itemCheckBox"
+            app:layout_constraintTop_toBottomOf="@+id/itemCategory"
+            tools:text="Заголовок(max 2 lines)" />
+
+        <TextView
+            android:id="@+id/itemDescrioption"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/itemCheckBox"
+            app:layout_constraintTop_toBottomOf="@+id/itemTitle"
+            tools:text="Этот текст нужно ограничить по длинне, максимум 3 строки, если больше ставить троеточие..." />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>

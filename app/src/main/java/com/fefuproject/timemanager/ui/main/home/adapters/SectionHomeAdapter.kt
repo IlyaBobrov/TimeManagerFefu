@@ -68,8 +68,8 @@ class SectionHomeAdapter(
     inner class VHNote(itemView: View) : ViewHolder(itemView), View.OnClickListener {
 
         val category = itemView.findViewById<TextView>(R.id.itemCategory)
-        val date = itemView.findViewById<TextView>(R.id.itemDate)
-        val message = itemView.findViewById<TextView>(R.id.itemMessage)
+        val date = itemView.findViewById<TextView>(R.id.itemDateStart)
+        val message = itemView.findViewById<TextView>(R.id.itemDescrioption)
         val complete = itemView.findViewById<LinearLayout>(R.id.itemContainer)
 
 

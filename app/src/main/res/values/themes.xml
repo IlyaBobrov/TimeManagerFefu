@@ -78,6 +78,11 @@
         <item name="android:textSize">28sp</item>
     </style>
 
+    <style name="ThemeOverlay.H3" parent="AppTheme">
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">24sp</item>
+    </style>
+
     //toolbar home
     <style name="TextAppearance.App.CollapsingToolbar.Expanded" parent="TextAppearance.MaterialComponents.Headline5">
         <item name="android:textColor">?attr/colorOnPrimary</item>

@@ -48,7 +48,7 @@ constructor(
             val data = withContext(Dispatchers.IO) {
                 suspend {
                     db.noteModelDao().insertAll(
-                        NoteModel(1, "Work", "Today", "hi", false)
+                        NoteModel("4", "Заголовок", "Описание","Работа","2021-05-17",null, false)
                     )
                     db.noteModelDao().getAll()
                 }
