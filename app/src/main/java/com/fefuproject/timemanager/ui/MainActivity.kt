@@ -1,4 +1,4 @@
-package com.fefuproject.timemanager
+package com.fefuproject.timemanager.ui
 
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -6,8 +6,12 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
+import androidx.room.Room
+import com.fefuproject.timemanager.App
+import com.fefuproject.timemanager.R
 import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
 import com.fefuproject.timemanager.components.Constants.APP_PREF_SETTINGS
+import com.fefuproject.timemanager.logic.db.AppDatabase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -19,6 +23,7 @@ class MainActivity : AppCompatActivity() {
         lateinit var sharedPreferences: SharedPreferences
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -28,6 +33,18 @@ class MainActivity : AppCompatActivity() {
         Log.d("TAG", "!!! ${sharedPreferences.getBoolean(APP_PREF_OFFLINE, false)} ")
 
         onClick()
+
+        connectDB()
+
+    }
+
+    private lateinit var database: AppDatabase
+
+    fun getDB() : AppDatabase = database
+
+    private fun connectDB() {
+        database = Room.databaseBuilder(this, AppDatabase::class.java, "database-note")
+            .build()
     }
 
     private fun onClick() {

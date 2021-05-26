@@ -1,4 +1,4 @@
-package com.fefuproject.timemanager.auth.fragments
+package com.fefuproject.timemanager.ui.auth.fragments
 
 import android.os.Bundle
 import android.text.TextUtils
@@ -7,8 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import com.fefuproject.timemanager.MainActivity
-import com.fefuproject.timemanager.MainActivity.Companion.mainAuth
+import com.fefuproject.timemanager.ui.MainActivity
+import com.fefuproject.timemanager.ui.MainActivity.Companion.mainAuth
 import com.fefuproject.timemanager.base.BaseFragment
 import com.fefuproject.timemanager.databinding.FragmentRegistrationBinding
 import com.google.firebase.auth.FirebaseAuth

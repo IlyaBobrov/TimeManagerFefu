@@ -1,18 +1,22 @@
-package com.fefuproject.timemanager.main.home.adapters
+package com.fefuproject.timemanager.ui.main.home.adapters
 
 import android.graphics.Color
+import android.graphics.Color.parseColor
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.cardview.widget.CardView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.fefuproject.timemanager.R
 import com.fefuproject.timemanager.components.getColorCompat
 import com.fefuproject.timemanager.components.getParsedDate
 import com.fefuproject.timemanager.components.selectHeaderCardDate
-import com.fefuproject.timemanager.models.NoteModel
+import com.fefuproject.timemanager.logic.models.NoteModel
 
 
 class HomeAdapter(
@@ -28,8 +32,8 @@ class HomeAdapter(
 
     override fun getItemViewType(position: Int): Int {
         currentPosition = position
-        return if (position > 0 && getParsedDate(getItem(position).date, "yyyy-MM-dd") !=
-            getParsedDate(getItem(position - 1).date, "yyyy-MM-dd")
+        return if (position > 0 && getParsedDate(getItem(position).date!!, "yyyy-MM-dd") !=
+            getParsedDate(getItem(position - 1).date!!, "yyyy-MM-dd")
         )
             TYPE_DATE
         else
@@ -63,25 +67,25 @@ class HomeAdapter(
         val category = itemView.findViewById<TextView>(R.id.itemCategory)
         val date = itemView.findViewById<TextView>(R.id.itemDate)
         val message = itemView.findViewById<TextView>(R.id.itemMessage)
-        val complete = itemView.findViewById<CardView>(R.id.itemCardView)
+        val complete = itemView.findViewById<ConstraintLayout>(R.id.clItemContainer)
 
         fun bindItemHolder(currentItem: NoteModel) {
             if (dateType) {
                 val dateTitle = itemView.findViewById<TextView>(R.id.itemTitleDate)
                 selectHeaderCardDate(
-                    getParsedDate(currentItem.date, "yyyy-MM-dd"),
+                    getParsedDate(currentItem.date!!, "yyyy-MM-dd"),
                     dateTitle
                 )
             }
             itemView.setOnClickListener(this)
             this.category.text = currentItem.category
             selectHeaderCardDate(
-                getParsedDate(currentItem.date, "yyyy-MM-dd"),
+                getParsedDate(currentItem.date!!, "yyyy-MM-dd"),
                 this.date
             )
             this.message.text = currentItem.message
-            if (currentItem.complete) {
-                complete.setCardBackgroundColor(itemView.context.getColorCompat(R.color.green_100))
+            if (currentItem.complete != null && currentItem.complete) {
+                complete.setBackgroundResource(R.drawable.ic_launcher_background)
             }
         }
 

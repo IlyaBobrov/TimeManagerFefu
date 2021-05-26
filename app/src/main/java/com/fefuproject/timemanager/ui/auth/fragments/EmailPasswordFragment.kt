@@ -1,4 +1,4 @@
-package com.fefuproject.timemanager.auth.fragments
+package com.fefuproject.timemanager.ui.auth.fragments
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,11 +10,11 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
-import com.fefuproject.timemanager.MainActivity.Companion.mainAuth
-import com.fefuproject.timemanager.MainActivity.Companion.sharedPreferences
+import com.fefuproject.timemanager.ui.MainActivity.Companion.mainAuth
+import com.fefuproject.timemanager.ui.MainActivity.Companion.sharedPreferences
 import com.fefuproject.timemanager.R
-import com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorFragment
-import com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorSignInFragment
+import com.fefuproject.timemanager.ui.auth.fragments.multifactorauth.MultiFactorFragment
+import com.fefuproject.timemanager.ui.auth.fragments.multifactorauth.MultiFactorSignInFragment
 import com.fefuproject.timemanager.base.BaseFragment
 import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
 import com.fefuproject.timemanager.databinding.FragmentEmailPasswordBinding

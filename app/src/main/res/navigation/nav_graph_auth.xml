@@ -12,7 +12,7 @@
 
     <fragment
         android:id="@+id/EmailPasswordFragment"
-        android:name="com.fefuproject.timemanager.auth.fragments.EmailPasswordFragment"
+        android:name="com.fefuproject.timemanager.ui.auth.fragments.EmailPasswordFragment"
         tools:layout="@layout/fragment_email_password">
 
         <action
@@ -28,27 +28,27 @@
 
     <fragment
         android:id="@+id/RegistrationFragment"
-        android:name="com.fefuproject.timemanager.auth.fragments.RegistrationFragment"
+        android:name="com.fefuproject.timemanager.ui.auth.fragments.RegistrationFragment"
         tools:layout="@layout/fragment_registration"/>
 
     <fragment
         android:id="@+id/MultiFactorSignInFragment"
-        android:name="com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorSignInFragment"
+        android:name="com.fefuproject.timemanager.ui.auth.fragments.multifactorauth.MultiFactorSignInFragment"
         tools:layout="@layout/fragment_multi_factor_sign_in" />
 
     <fragment
         android:id="@+id/MultiFactorEnrollFragment"
-        android:name="com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorEnrollFragment"
+        android:name="com.fefuproject.timemanager.ui.auth.fragments.multifactorauth.MultiFactorEnrollFragment"
         tools:layout="@layout/fragment_phone_auth" />
 
     <fragment
         android:id="@+id/MultiFactorUnenrollFragment"
-        android:name="com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorUnenrollFragment"
+        android:name="com.fefuproject.timemanager.ui.auth.fragments.multifactorauth.MultiFactorUnenrollFragment"
         tools:layout="@layout/fragment_multi_factor_sign_in" />
 
     <fragment
         android:id="@+id/MultiFactorFragment"
-        android:name="com.fefuproject.timemanager.auth.fragments.multifactorauth.MultiFactorFragment"
+        android:name="com.fefuproject.timemanager.ui.auth.fragments.multifactorauth.MultiFactorFragment"
         tools:layout="@layout/fragment_multi_factor">
 
         <action

@@ -1,7 +1,7 @@
-package com.fefuproject.timemanager.main.home.adapters
+package com.fefuproject.timemanager.ui.main.home.adapters
 
 import androidx.recyclerview.widget.DiffUtil
-import com.fefuproject.timemanager.models.NoteModel
+import com.fefuproject.timemanager.logic.models.NoteModel
 
 class HomeListDiffUtils: DiffUtil.ItemCallback<NoteModel>() {
 

@@ -1,4 +1,4 @@
-package com.fefuproject.timemanager.main.home.view
+package com.fefuproject.timemanager.ui.main.home.view
 
 import android.os.Bundle
 import android.util.Log
@@ -11,27 +11,37 @@ import android.widget.ArrayAdapter
 import android.widget.SpinnerAdapter
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.fefuproject.timemanager.MainActivity
-import com.fefuproject.timemanager.MainActivity.Companion.mainAuth
-import com.fefuproject.timemanager.MainActivity.Companion.sharedPreferences
+import androidx.recyclerview.widget.RecyclerView
 import com.fefuproject.timemanager.R
 import com.fefuproject.timemanager.base.BaseFragment
 import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
 import com.fefuproject.timemanager.databinding.FragmentHomeBinding
-import com.fefuproject.timemanager.main.home.adapters.HomeAdapter
-import com.fefuproject.timemanager.models.NoteListModel
-import com.fefuproject.timemanager.models.NoteModel
+import com.fefuproject.timemanager.logic.db.AppDatabase
+import com.fefuproject.timemanager.logic.models.NoteModel
+import com.fefuproject.timemanager.ui.MainActivity
+import com.fefuproject.timemanager.ui.MainActivity.Companion.mainAuth
+import com.fefuproject.timemanager.ui.MainActivity.Companion.sharedPreferences
+import com.fefuproject.timemanager.ui.main.home.adapters.*
+import com.fefuproject.timemanager.ui.main.home.adapters.ListItem.Companion.TYPE_NOTE
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
-class HomeFragment : BaseFragment(), HomeView, HomeAdapter.HomeOnItemClickListener {
+class HomeFragment : BaseFragment(),
+    IHomeView,
+    HomeAdapter.HomeOnItemClickListener {
 
     companion object {
         private const val TAG = "HOME_TAG"
     }
 
+    lateinit var db: AppDatabase
     private var statusOffline: Boolean = false
     private val adapterHome = HomeAdapter(this)
     private var _binding: FragmentHomeBinding? = null
+    var note = mutableListOf<ListItem>()
+    lateinit var data: List<NoteModel>
+
     private val binding: FragmentHomeBinding
         get() = _binding!!
 
@@ -49,43 +59,93 @@ class HomeFragment : BaseFragment(), HomeView, HomeAdapter.HomeOnItemClickListen
         super.onViewCreated(view, savedInstanceState)
         onClick()
         statusOffline = sharedPreferences.getBoolean(APP_PREF_OFFLINE, false)
-        if (statusOffline)
-            Toast.makeText(context, "Оффлайн режим", Toast.LENGTH_SHORT).show()
-        else
-            Toast.makeText(context, mainAuth.currentUser?.email, Toast.LENGTH_SHORT).show()
-        Log.d(TAG, "onViewCreated: $statusOffline")
+        if (statusOffline) Toast.makeText(context, "Оффлайн режим", Toast.LENGTH_SHORT).show()
+        else Toast.makeText(context, mainAuth.currentUser?.email, Toast.LENGTH_SHORT).show()
         initToolBar()
-        initMainRecycler()
+        initSwipeAndScroll()
+        initDB()
         initSpinner()
+    }
+
+    private fun initSwipeAndScroll() {
+        //swipe
+        binding.swipeContainerHome.setOnRefreshListener {
+            updateHomeInfo()
+        }
+        //scroll
+        val rvs = object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val lastVisibleItemPosition =
+                    (binding.rvHome.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+                Log.d(TAG, "onScrolled: $lastVisibleItemPosition")
+            }
+        }
+        binding.rvHome.addOnScrollListener(rvs)
+    }
+
+
+    private fun initDB() {
+
+        db = (requireActivity() as MainActivity).getDB()
+
+        /*GlobalScope.launch {
+            db.noteModelDao().insertAll(
+                    NoteModel(1, "Работа", "2021-05-17", "Заметка!", false),
+            )
+        }*/
+
+        GlobalScope.launch {
+            data = db.noteModelDao().getAll()
+            Log.d(TAG, "initDB: $data")
+            initMainRecycler()
+        }
+
+    }
+
+    override fun getDb(notes: List<NoteModel>) {
+        Log.d(TAG, "getDb")
+        Log.d(TAG, "getDb: $notes")
+    }
+
+    private fun convertToCategoryList(list: List<Note>): MutableList<ListItem> {
+        //разбиваем на категории
+        val dateList = mutableListOf<String>()
+        val categoryList = mutableListOf<ListItem>()
+
+        list.forEach { item ->
+            if (dateList.find { it.take(10) == item.date!!.take(10) } == null) {
+                dateList.add(item.date!!)
+            }
+        }
+
+        dateList.sortDescending()
+        dateList.forEach { itemDate ->
+            categoryList.add(Header(itemDate))
+            list.forEach { item ->
+                if (item.date!!.take(10) == itemDate.take(10)) {
+                    categoryList.add(item)
+                }
+            }
+        }
+        Log.e(TAG, "initRV: $categoryList")
+        return categoryList
     }
 
     private fun initMainRecycler() {
         binding.rvHome.apply {
+            layoutManager = LinearLayoutManager(context)
             adapter = adapterHome
-            layoutManager = LinearLayoutManager(activity)
-        }
-        binding.swipeContainerHome.setOnRefreshListener {
-            updateHomeInfo()
         }
 
-        val note = NoteListModel(
-            mutableListOf(
-                NoteModel(0, "Учеба", "2021-05-19", "Первая заметка!", false),
-                NoteModel(1, "Учеба", "2021-05-18", "Заметка!", false),
-                NoteModel(2, "Работа", "2021-05-17", "Заметка!", false),
-                NoteModel(3, "Работа", "2021-05-16", "Заметка!", true),
-                NoteModel(4, "Быт", "2021-05-19", "Заметка!", false)
-            )
-        )
-
-        setListData(note)
-
+        setListData(data)
     }
 
     private fun updateHomeInfo() {
         Toast.makeText(requireContext(), "В разарботке", Toast.LENGTH_SHORT).show()
     }
 
+    //для отображения выбранных элементов в toolbar
     /*private fun callback() {
         val callback = object : ActionMode.Callback {
 
@@ -156,7 +216,6 @@ class HomeFragment : BaseFragment(), HomeView, HomeAdapter.HomeOnItemClickListen
     }
 
     private fun initToolBar() {
-
         binding.topAppBar.setNavigationOnClickListener {
             // Handle navigation icon press
             Toast.makeText(context, getString(R.string.in_develop), Toast.LENGTH_SHORT).show()
@@ -190,10 +249,11 @@ class HomeFragment : BaseFragment(), HomeView, HomeAdapter.HomeOnItemClickListen
     }
 
     override fun onItemClick(position: Int) {
-        TODO("Not yet implemented")
+        Toast.makeText(context, "hi", Toast.LENGTH_SHORT).show()
     }
 
-    override fun setListData(data: NoteListModel) {
-        adapterHome.submitList(data.data)
+    override fun setListData(data: List<NoteModel>) {
+        adapterHome.submitList(data)
     }
+
 }

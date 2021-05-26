@@ -1,4 +1,4 @@
-package com.fefuproject.timemanager.auth.fragments.multifactorauth
+package com.fefuproject.timemanager.ui.auth.fragments.multifactorauth
 
 import com.fefuproject.timemanager.base.BaseFragment
 import com.fefuproject.timemanager.databinding.FragmentPhoneAuthBinding

@@ -1,4 +1,4 @@
-package com.fefuproject.timemanager.auth.fragments.multifactorauth
+package com.fefuproject.timemanager.ui.auth.fragments.multifactorauth
 
 import android.os.Bundle
 import android.text.TextUtils
