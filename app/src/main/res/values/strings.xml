@@ -40,7 +40,7 @@
     <string name="get_custom_token">Get Token</string>
     <string name="sign_in">Войти</string>
     <string name="create_account">Create Account</string>
-    <string name="registration">Регистрация</string>
+    <string name="registration">Зарегистрироваться</string>
     <string name="blablabla">Все права защищены 2021</string>
     <string name="bla_registration">У вас ещё нет аккаунта?</string>
     <string name="link_registration">Зарегистрируйтесь.</string>
@@ -54,7 +54,7 @@
     <string name="signed_in">Signed In</string>
     <string name="signed_out">Signed Out</string>
     <string name="token_null">Token: null</string>
-    <string name="hint_email">Email, номер телефона или имя пользователя</string>
+    <string name="hint_email">Логин</string>
     <string name="hint_password">Пароль</string>
     <string name="desc_firebase_lockup">Firebase logo and name</string>
     <string name="auth_failed">Authentication failed</string>
