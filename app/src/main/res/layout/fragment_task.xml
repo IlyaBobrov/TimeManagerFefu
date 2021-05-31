@@ -65,6 +65,7 @@
             android:layout_marginTop="20dp"
             android:ems="10"
             android:hint="Заголовок"
+            android:padding="10dp"
             android:inputType="textPersonName" />
 
         <EditText
@@ -74,6 +75,7 @@
             android:layout_marginTop="20dp"
             android:ems="10"
             android:hint="Описание"
+            android:padding="10dp"
             android:inputType="textPassword" />
 
         <LinearLayout
