@@ -37,7 +37,6 @@
             app:layout_anchor="@+id/appBarLayout"
             app:layout_anchorGravity="center"
             app:menu="@menu/toolbar_menu"
-            app:navigationIcon="@drawable/googleg_disabled_color_18"
             app:navigationIconTint="@color/white"
             app:title="@string/app_name">
 

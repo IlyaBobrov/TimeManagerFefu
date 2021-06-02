@@ -7,4 +7,5 @@
     android:ellipsize="marquee"
     android:textColor="@color/white"
     android:singleLine="true"
+    android:padding="10dp"
     android:textAlignment="inherit" />

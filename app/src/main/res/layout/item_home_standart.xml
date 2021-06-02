@@ -65,21 +65,26 @@
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:visibility="gone"
             app:layout_constraintEnd_toStartOf="@+id/itemDateContainer"
             app:layout_constraintStart_toEndOf="@+id/itemCheckBox"
             app:layout_constraintTop_toBottomOf="@+id/itemCategory"
-            tools:text="Заголовок(max 2 lines)" />
+            tools:text="Заголовок(max 2 lines)"
+            android:maxLines="2"
+            android:ellipsize="end"/>
 
         <TextView
             android:id="@+id/itemDescrioption"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="16sp"
+            android:padding="10dp"
             app:layout_constraintEnd_toStartOf="@+id/itemDateContainer"
             app:layout_constraintStart_toEndOf="@+id/itemCheckBox"
             app:layout_constraintTop_toBottomOf="@+id/itemTitle"
-            tools:text="Этот текст нужно ограничить по длинне, максимум 3 строки, если больше ставить троеточие..." />
+            tools:text="Выводится 3 строки, а дальше троеточие."
+            android:maxLines="3"
+            android:ellipsize="end"
+            />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
