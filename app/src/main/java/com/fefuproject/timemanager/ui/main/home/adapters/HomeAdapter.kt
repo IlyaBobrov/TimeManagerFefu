@@ -1,11 +1,17 @@
 package com.fefuproject.timemanager.ui.main.home.adapters
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.ListAdapter
@@ -39,9 +45,10 @@ class HomeAdapter(
             else*/
         return TYPE_STANDART
     }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
-        when (viewType) {
+    lateinit var context: Context
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        context = parent.context
+        return when (viewType) {
             TYPE_DATE -> itemViewHolder(
                 LayoutInflater.from(parent.context).inflate(R.layout.item_home_date, parent, false),
                 true
@@ -51,7 +58,7 @@ class HomeAdapter(
                     .inflate(R.layout.item_home_standart, parent, false), false
             )
         }
-
+    }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) =
         when (getItemViewType(position)) {
             TYPE_DATE -> (holder as itemViewHolder).bindItemHolder(getItem(position))
@@ -70,54 +77,52 @@ class HomeAdapter(
         val completeCheckBox = itemView.findViewById<CheckBox>(R.id.itemCheckBox)
 
         fun bindItemHolder(currentItem: NoteModel) {
-            /*if (dateType) {
-                val dateTitle = itemView.findViewById<TextView>(R.id.itemTitleDate)
-                selectHeaderCardDate(
-                    getParsedDate(currentItem.date!!, "yyyy-MM-dd"),
-                    dateTitle
-                )
-            }*/
+            Log.d("TAG", "bindItemHolder: $currentItem")
             itemView.setOnClickListener(this)
-            this.category.text = currentItem.category
-            selectHeaderCardDate(
-                getParsedDate(currentItem.dateStart!!, "yyyy-MM-dd"),
-                this.dateStart
-            )
+            completeCheckBox.setOnClickListener(this)
+
+            if (currentItem.category?.title == "Все"){
+                this.category.visibility = View.GONE
+            }else {
+                this.category.visibility = View.VISIBLE
+                this.category.text = currentItem.category?.title
+            }
+            dateStart.text = currentItem.dateStart
+            Log.d("TAG", "bindItemHolder: ${currentItem.dateEnd}")
             if (currentItem.dateEnd != null) {
                 dateEnd.isVisible
-                selectHeaderCardDate(
-                    getParsedDate(currentItem.dateEnd, "yyyy-MM-dd"),
-                    this.dateEnd
-                )
+                this.dateEnd.text = currentItem.dateEnd
             } else {
                 dateEnd.isGone
             }
 
-            if (currentItem.title == null || currentItem.title == "") {
-                title.isGone
+            if (currentItem.title == null || currentItem.title.toString() == "") {
+                this.title.visibility = View.GONE
             } else {
-                title.isVisible
+                this.title.visibility = View.VISIBLE
                 title.text = currentItem.title
             }
 
             descrioption.text = currentItem.description
 
-            if (currentItem.complete != null && currentItem.complete) {
-                completeContainer.setBackgroundResource(R.drawable.bg_complite_item)
+            if (currentItem.complete!!) {
                 completeCheckBox.isChecked = true
+                completeContainer.setBackgroundColor(ContextCompat.getColor(context, R.color.grey_300))
+
             } else {
+                completeContainer.setBackgroundColor(ContextCompat.getColor(context, R.color.white))
                 completeCheckBox.isChecked = false
             }
         }
 
-        override fun onClick(v: View?) {
-            homeOnItemClickListener.onItemClick(getItem(absoluteAdapterPosition))
+        override fun onClick(v: View) {
+            homeOnItemClickListener.onItemClick(v, getItem(absoluteAdapterPosition), absoluteAdapterPosition)
         }
     }
 
 
     interface HomeOnItemClickListener {
-        fun onItemClick(item: NoteModel)
+        fun onItemClick(v: View, item: NoteModel, position: Int)
     }
 
 }

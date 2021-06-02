@@ -37,7 +37,7 @@ constructor(
             } else {
                 Log.d(TAG, "Notes not null: $notes")
 
-                getView()?.getDb(notes = notes)
+//                getView()?.getDb(notes = notes)
             }
         }
     }
@@ -48,7 +48,7 @@ constructor(
             val data = withContext(Dispatchers.IO) {
                 suspend {
                     db.noteModelDao().insertAll(
-                        NoteModel("4", "Заголовок", "Описание","Работа","2021-05-17",null, false)
+//                        NoteModel("4", "Заголовок", "Описание","Работа","2021-05-17",null, false)
                     )
                     db.noteModelDao().getAll()
                 }

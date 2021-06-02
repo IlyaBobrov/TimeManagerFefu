@@ -1,9 +1,6 @@
 package com.fefuproject.timemanager.logic.models
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
 
 
 @Dao
@@ -14,11 +11,17 @@ interface NoteModelDao {
     @Query("SELECT * FROM NoteModel WHERE id IN (:noteIds)")
     fun loadAllByIds(noteIds: IntArray): List<NoteModel>
 
-    @Query("SELECT * FROM NoteModel WHERE complete LIKE :complete LIMIT 1")
-    fun findByComplete(complete: Boolean): NoteModel
+    @Query("SELECT * FROM NoteModel WHERE complete LIKE :complete ")
+    fun findByNotCompleted(complete: Boolean): List<NoteModel>
 
-    @Query("SELECT * FROM NoteModel WHERE date_start LIKE :date LIMIT 1")
-    fun findByCDate(date: String): NoteModel
+    @Query("SELECT * FROM NoteModel WHERE date_start LIKE :date")
+    fun findByDate(date: String): List<NoteModel>
+
+    @Query("SELECT * FROM NoteModel WHERE category LIKE :category")
+    fun findByCategory(category: String): List<NoteModel>
+
+    @Update
+    fun updateNote(note: NoteModel)
 
     @Insert
     fun insertAll(vararg notes: NoteModel)

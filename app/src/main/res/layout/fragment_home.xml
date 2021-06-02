@@ -67,12 +67,13 @@
 
             <!-- Scrollable content -->
             <androidx.recyclerview.widget.RecyclerView
+                app:reverseLayout="true"
                 android:id="@+id/rvHome"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentBottom="true"
-                tools:listitem="@layout/item_home_date" />
+                tools:listitem="@layout/item_home_standart" />
         </RelativeLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

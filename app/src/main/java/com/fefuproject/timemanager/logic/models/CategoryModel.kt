@@ -9,6 +9,6 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 @Entity
 data class CategoryModel(
-    @PrimaryKey val id: String,
+    @PrimaryKey(autoGenerate = true) val id: Int? = null,
     @ColumnInfo(name = "title") val title: String? = null,
 ) : Parcelable

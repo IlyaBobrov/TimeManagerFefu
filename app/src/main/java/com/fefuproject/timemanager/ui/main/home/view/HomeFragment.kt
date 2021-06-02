@@ -5,16 +5,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
+import android.widget.*
 import android.widget.AdapterView.OnItemSelectedListener
-import android.widget.ArrayAdapter
-import android.widget.SpinnerAdapter
-import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fefuproject.timemanager.R
+import com.fefuproject.timemanager.R.id.itemCheckBox
 import com.fefuproject.timemanager.base.BaseFragment
+import com.fefuproject.timemanager.components.Constants.APP_CATEGORY_PREF
 import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
 import com.fefuproject.timemanager.databinding.FragmentHomeBinding
 import com.fefuproject.timemanager.logic.db.AppDatabase
@@ -23,13 +22,25 @@ import com.fefuproject.timemanager.logic.models.NoteModel
 import com.fefuproject.timemanager.ui.MainActivity
 import com.fefuproject.timemanager.ui.MainActivity.Companion.sharedPreferences
 import com.fefuproject.timemanager.ui.main.home.adapters.HomeAdapter
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import java.text.FieldPosition
+import kotlin.coroutines.CoroutineContext
 
 
 class HomeFragment : BaseFragment(),
     IHomeView,
-    HomeAdapter.HomeOnItemClickListener {
+    HomeAdapter.HomeOnItemClickListener,
+    CoroutineScope {
+
+    private val job = SupervisorJob()
+    private lateinit var initDbJob: Job
+    private lateinit var insertInDbJob: Job
+    private lateinit var updateListJob: Job
+    private lateinit var initCategoryJob: Job
+    private lateinit var sortByCategoryJob: Job
+    private lateinit var setCompiteJob: Job
+
+    override val coroutineContext: CoroutineContext = Dispatchers.Main + job
 
     companion object {
         private const val TAG = "HOME_TAG"
@@ -43,8 +54,10 @@ class HomeFragment : BaseFragment(),
 
     private lateinit var db: AppDatabase
     private lateinit var data: List<NoteModel>
+    private lateinit var folders: List<CategoryModel>
 
     private var statusOffline: Boolean = false
+    private var currentCategory: String? = "Все"
     private val adapterHome = HomeAdapter(this)
     private var _binding: FragmentHomeBinding? = null
 
@@ -63,18 +76,19 @@ class HomeFragment : BaseFragment(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         statusOffline = sharedPreferences.getBoolean(APP_PREF_OFFLINE, false)
+        currentCategory = sharedPreferences.getString(APP_CATEGORY_PREF, "Все")
         initToolBar()
-        initSwipeAndScroll()
+        initSwipeRefreshAndScroll()
         initMainRecycler()
         initDB()
-        initSpinner()
         onListeners()
         Log.d(TAG, "onViewCreated: ")
     }
 
-    private fun initSwipeAndScroll() {
-        //swipe
+    private fun initSwipeRefreshAndScroll() {
+        //swipeRefresh
         binding.swipeContainerHome.setOnRefreshListener {
+
             updateHomeInfo()
         }
         //scroll
@@ -91,29 +105,33 @@ class HomeFragment : BaseFragment(),
 
     private fun initDB() {
         db = AppDatabase.invoke(requireContext())
-
-        GlobalScope.launch {
-            Log.d(TAG, "initDB: 1")
-
-            val data = db.noteModelDao().getAll()
-            if (data.isEmpty()) {
-                db.noteModelDao().insertAll(
-                    NoteModel("1", "Заголовок", "Описание", "Работа", "2021-05-17", null, false)
-                )
-                Log.d(TAG, "initDB: 2")
-                db.categoryModelDao().insertAll(CategoryModel("0", "Работа"))
-                db.categoryModelDao().insertAll(CategoryModel("1", "Учеба"))
-                db.categoryModelDao().insertAll(CategoryModel("2", "Быт"))
+        binding.swipeContainerHome.isRefreshing = true
+        initDbJob = launch {
+            val localData = withContext(Dispatchers.IO) {
+                db.noteModelDao().getAll()
             }
+            if (localData.isNullOrEmpty()) {
+                withContext(Dispatchers.IO) {
+                    db.noteModelDao().insertAll(
+                        NoteModel(
+                            null,
+                            "Заголовок",
+                            "Описание",
+                            CategoryModel(null, "Работа"),
+                            "17 5 2021",
+                            "18 5 2021",
+                            false
+                        )
+                    )
+                    db.categoryModelDao().insertAll(CategoryModel(null, "Все"))
+                    db.categoryModelDao().insertAll(CategoryModel(null, "Работа"))
+                    db.categoryModelDao().insertAll(CategoryModel(null, "Учеба"))
+                }
+            }
+            sortByCategory()
+            getCategories()
         }
-        GlobalScope.launch {
-            data = db.noteModelDao().getAll()
-            Log.d(TAG, "initDB: $data")
-            setListData(data)
-        }
-
     }
-
 
     /*private fun convertToCategoryList(list: List<Note>): MutableList<ListItem> {
         //разбиваем на категории
@@ -142,12 +160,15 @@ class HomeFragment : BaseFragment(),
     private fun initMainRecycler() {
         binding.rvHome.apply {
             layoutManager = LinearLayoutManager(context)
+//            adapterHome.submitList(null)
             adapter = adapterHome
         }
+
     }
 
     private fun updateHomeInfo() {
-        Toast.makeText(requireContext(), "В разарботке", Toast.LENGTH_SHORT).show()
+        adapterHome.submitList(null)
+        sortByCategory()
     }
 
     //для отображения выбранных элементов в toolbar
@@ -185,18 +206,29 @@ class HomeFragment : BaseFragment(),
         actionMode?.title = "1 выбрано"
     }*/
 
+    fun getCategories() {
+        initCategoryJob = launch {
+            folders = withContext(Dispatchers.IO) {
+                db.categoryModelDao().getAll()
+            }
+            binding.topNavigationSpinner.adapter
+            initSpinner(folders)
+        }
+    }
 
-    private fun initSpinner() {
-        //todo брать массив из db
+    private fun initSpinner(list: List<CategoryModel>) {
+
         val arrayList = arrayListOf<String>()
-        arrayList.add("Работа")
-        arrayList.add("Учеба")
-        arrayList.add("Быт")
+        list.forEach {
+            arrayList.add(it.title.toString())
+        }
+
         val spinnerAdapter: SpinnerAdapter = ArrayAdapter(
             this.requireContext(), R.layout.custom_spinner_item, arrayList
         )
         (spinnerAdapter as ArrayAdapter<*>).setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
         binding.topNavigationSpinner.adapter = spinnerAdapter
+        binding.topNavigationSpinner.setSelection(getIngex(binding.topNavigationSpinner))
         binding.topNavigationSpinner.onItemSelectedListener = object : OnItemSelectedListener {
 
             override fun onItemSelected(
@@ -205,16 +237,40 @@ class HomeFragment : BaseFragment(),
                 position: Int,
                 id: Long
             ) {
-                Toast.makeText(
-                    requireContext(),
-                    "Вы выбрали: " + arrayList[position],
-                    Toast.LENGTH_SHORT
-                ).show()
+                currentCategory = arrayList[position]
+                sharedPreferences.edit().putString(APP_CATEGORY_PREF, currentCategory).apply()
+                sortByCategory()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
                 Toast.makeText(requireContext(), "Ничего не выбано", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun getIngex(spinner: Spinner): Int {
+        for (i in 0..spinner.count) {
+            if (spinner.getItemAtPosition(i).toString() == currentCategory) {
+                return i
+            }
+        }
+        return 0
+    }
+
+    private fun sortByCategory() {
+        binding.swipeContainerHome.isRefreshing = true
+        sortByCategoryJob = launch {
+            data = if (currentCategory == "Все") {
+                withContext(Dispatchers.IO) {
+                    db.noteModelDao().getAll()
+                }
+            } else {
+                withContext(Dispatchers.IO) {
+                    db.noteModelDao().findByCategory(currentCategory.toString())
+                }
+            }
+            adapterHome.submitList(data.asReversed())
+            binding.swipeContainerHome.isRefreshing = false
         }
     }
 
@@ -239,6 +295,10 @@ class HomeFragment : BaseFragment(),
                         .show()
                     true
                 }
+                R.id.tbClear -> {
+
+                    true
+                }
                 else -> false
             }
         }
@@ -253,46 +313,57 @@ class HomeFragment : BaseFragment(),
 
         //обмен данными с TaskFragment
         with(findNavController().currentBackStackEntry) {
+
             this?.savedStateHandle?.getLiveData<NoteModel>(KEY_CREATE)
                 ?.observe(viewLifecycleOwner)
                 {
-                    Log.d(TAG, "onListeners: KEY_CREATE")
-                    Toast.makeText(
-                        requireContext(),
-                        "Create note ${it.description}",
-                        Toast.LENGTH_SHORT
-                    ).show()
                     //todo добавить заметку в бд и обновить список
+                    insertInDbJob = launch {
+                        withContext(Dispatchers.IO) {
+                            db.noteModelDao().insertAll(it)
+                        }
+                        sortByCategory()
+                    }
 
                     savedStateHandle.remove<NoteModel>(KEY_CREATE)
                 }
-            this?.savedStateHandle?.getLiveData<NoteModel>(KEY_EDIT)?.observe(viewLifecycleOwner) {
-                Log.d(TAG, "onListeners: KEY_EDIT")
-                Toast.makeText(requireContext(), it.description, Toast.LENGTH_SHORT).show()
 
+            this?.savedStateHandle?.getLiveData<NoteModel>(KEY_EDIT)?.observe(viewLifecycleOwner) {
+                //todo обновить заметку
+                updateListJob = launch {
+                    withContext(Dispatchers.IO) {
+                        db.noteModelDao().updateNote(it)
+                    }
+                    sortByCategory()
+                }
                 savedStateHandle.remove<NoteModel>(KEY_EDIT)
             }
 
         }
-
-//        findNavController().currentBackStackEntry?.savedStateHandle?.
     }
 
-    override fun onItemClick(item: NoteModel) {
-        val bundle = Bundle()
-        bundle.putString(CREATE_TASK, KEY_EDIT)
-        bundle.putParcelable(NOTE_TASK, item)
-        findNavController().navigate(R.id.action_homeFragment_to_taskFragment, args = bundle)
-    }
+    override fun onItemClick(v:View, item: NoteModel, position: Int) {
+        when(v.id){
+            itemCheckBox -> {
+                Log.d(TAG, "onItemClick: ")
+                val it:NoteModel = item
+                setCompiteJob = launch {
+                    withContext(Dispatchers.IO){
+                        it.complete = item.complete?.not()
+                        db.noteModelDao().updateNote(it)
+                    }
+                    adapterHome.notifyItemChanged(position)
+                }
+            }
+            else ->{
+                val bundle = Bundle()
+                bundle.putString(CREATE_TASK, KEY_EDIT)
+                bundle.putParcelable(NOTE_TASK, item)
+                findNavController().navigate(R.id.action_homeFragment_to_taskFragment, args = bundle)
+            }
+        }
 
-    override fun setListData(data: List<NoteModel>) {
-        Log.d(TAG, "setListData")
-        adapterHome.submitList(data)
-        adapterHome.notifyDataSetChanged()
-    }
 
-    override fun getDb(notes: List<NoteModel>) {
-        Log.d(TAG, "getDb: $notes")
     }
 
 }

@@ -4,16 +4,15 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.fefuproject.timemanager.components.Constants.DATABASE_NAME
-import com.fefuproject.timemanager.logic.models.CategoryModel
-import com.fefuproject.timemanager.logic.models.CategoryModelDao
-import com.fefuproject.timemanager.logic.models.NoteModel
-import com.fefuproject.timemanager.logic.models.NoteModelDao
+import com.fefuproject.timemanager.logic.models.*
 
 @Database(
     entities = [NoteModel::class, CategoryModel::class],
-    version = 3
+    version = 25
 )
+@TypeConverters(CategoryConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun noteModelDao(): NoteModelDao

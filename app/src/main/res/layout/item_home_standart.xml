@@ -65,6 +65,7 @@
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:visibility="gone"
             app:layout_constraintEnd_toStartOf="@+id/itemDateContainer"
             app:layout_constraintStart_toEndOf="@+id/itemCheckBox"
             app:layout_constraintTop_toBottomOf="@+id/itemCategory"
@@ -75,7 +76,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textSize="16sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/itemDateContainer"
             app:layout_constraintStart_toEndOf="@+id/itemCheckBox"
             app:layout_constraintTop_toBottomOf="@+id/itemTitle"
             tools:text="Этот текст нужно ограничить по длинне, максимум 3 строки, если больше ставить троеточие..." />

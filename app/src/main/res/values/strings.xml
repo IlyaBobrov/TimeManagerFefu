@@ -114,6 +114,9 @@
     <string name="multi_factor_signed_out">You are not signed in. To use this sample, first navigate to the Email/Password example to sign in and then return here to enroll in multi-factor auth.</string>
     <string name="required">Required.</string>
     <string name="Exit">Выйти</string>
+    <string name="DeleteAll">Удалить все</string>
+    <string name="Save">Сохранить</string>
+
     <string name="Create">Создать</string>
     <string name="in_develop">В разработке</string>
     <string name="Delete">Удалить</string>
@@ -123,5 +126,6 @@
     <string name="Tomorrow">Завтра</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="Cancel">Отменить</string>
 
 </resources>

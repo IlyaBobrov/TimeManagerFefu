@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.cardview.widget.CardView
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
 import com.fefuproject.timemanager.ui.MainActivity.Companion.mainAuth
@@ -18,6 +19,7 @@ import com.fefuproject.timemanager.ui.auth.fragments.multifactorauth.MultiFactor
 import com.fefuproject.timemanager.base.BaseFragment
 import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
 import com.fefuproject.timemanager.databinding.FragmentEmailPasswordBinding
+import com.fefuproject.timemanager.ui.MainActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -79,6 +81,7 @@ class EmailPasswordFragment : BaseFragment() {
                 startActivityForResult(googleSignInClient.signInIntent, RC_SIGN_IN)
             }
             signInOffline.setOnClickListener {
+                showProgressBar()
                 offline = true
                 updateUI(null)
             }
@@ -150,7 +153,6 @@ class EmailPasswordFragment : BaseFragment() {
 
     private fun startHome() {
         Log.d(TAG, "startHome: ")
-//        findNavController().popBackStack()
         findNavController().setGraph(R.navigation.nav_graph_main)
     }
 
@@ -252,7 +254,6 @@ class EmailPasswordFragment : BaseFragment() {
 
     private fun updateUI(user: FirebaseUser?) {
         Log.d(TAG, "updateUI: ")
-        hideProgressBar()
         if (offline) {
             sharedPreferences.edit().putBoolean(APP_PREF_OFFLINE, true).apply()
             startHome()
@@ -274,6 +275,7 @@ class EmailPasswordFragment : BaseFragment() {
             binding.detail.text = null
             Toast.makeText(context, "Ошибка авторизации!", Toast.LENGTH_SHORT).show()
         }
+        hideProgressBar()
     }
 
     //непонятно зачем (из документации файры)

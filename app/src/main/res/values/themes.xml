@@ -92,5 +92,8 @@
         <item name="android:textColor">?attr/colorOnPrimary</item>
     </style>
 
+    <style name="splashScreenTheme" parent="@style/AppTheme">
+        <item name="android:windowBackground">@drawable/activity_splash</item>
+    </style>
 
 </resources>

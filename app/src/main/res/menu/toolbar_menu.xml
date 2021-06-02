@@ -14,10 +14,17 @@
         app:showAsAction="withText"/>
 
     <item
+        android:id="@+id/tbClear"
+        android:title="@string/DeleteAll"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        app:showAsAction="withText" />
+
+    <item
         android:id="@+id/tbExit"
         android:title="@string/Exit"
         android:icon="@android:drawable/ic_menu_myplaces"
         app:showAsAction="withText" />
+
 
 
 </menu>

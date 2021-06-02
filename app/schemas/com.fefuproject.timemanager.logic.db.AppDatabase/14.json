@@ -1,18 +1,18 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 4,
-    "identityHash": "6635c3334a2f39455bd3c31ff5682143",
+    "version": 14,
+    "identityHash": "59f683d4d78e1344a3d8d3b267b2c010",
     "entities": [
       {
         "tableName": "NoteModel",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT, `description` TEXT, `category` TEXT, `date_start` TEXT, `date_end` TEXT, `complete` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `title` TEXT, `description` TEXT, `category` TEXT, `date_start` TEXT, `date_end` TEXT, `complete` INTEGER)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "INTEGER",
+            "notNull": false
           },
           {
             "fieldPath": "title",
@@ -55,20 +55,20 @@
           "columnNames": [
             "id"
           ],
-          "autoGenerate": false
+          "autoGenerate": true
         },
         "indices": [],
         "foreignKeys": []
       },
       {
         "tableName": "CategoryModel",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `title` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "INTEGER",
+            "notNull": false
           },
           {
             "fieldPath": "title",
@@ -81,7 +81,7 @@
           "columnNames": [
             "id"
           ],
-          "autoGenerate": false
+          "autoGenerate": true
         },
         "indices": [],
         "foreignKeys": []
@@ -90,7 +90,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6635c3334a2f39455bd3c31ff5682143')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '59f683d4d78e1344a3d8d3b267b2c010')"
     ]
   }
 }

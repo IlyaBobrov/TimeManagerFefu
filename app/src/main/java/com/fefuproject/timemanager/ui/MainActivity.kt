@@ -3,8 +3,10 @@ package com.fefuproject.timemanager.ui
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.navigation.findNavController
 import com.fefuproject.timemanager.R
 import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
@@ -67,4 +69,5 @@ class MainActivity : AppCompatActivity() {
         mainAuth.signOut()
         findNavController(R.id.nav_host_fragment).setGraph(R.navigation.nav_graph_auth)
     }
+
 }
