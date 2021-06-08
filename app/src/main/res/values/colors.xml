@@ -20,6 +20,7 @@
 
     <color name="primary">#673AB7</color>
     <color name="primary_dark">#512DA8</color>
+    <color name="primary_v_dark">#2c1859</color>
     <color name="primary_light">#D1C4E9</color>
     <color name="accent">#8BC34A</color>
     <color name="primary_text">#212121</color>

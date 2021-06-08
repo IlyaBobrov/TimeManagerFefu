@@ -55,6 +55,15 @@
             android:inputType="textPassword"
             android:padding="10dp" />
 
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="15dp"
+            android:background="@drawable/border"
+            android:hint="@string/hint_password_Replay"
+            android:padding="10dp" />
+
         <Button
             android:id="@+id/regButton"
             android:layout_width="match_parent"
