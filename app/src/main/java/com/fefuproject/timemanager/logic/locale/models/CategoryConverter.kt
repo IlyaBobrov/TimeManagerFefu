@@ -1,4 +1,4 @@
-package com.fefuproject.timemanager.logic.models
+package com.fefuproject.timemanager.logic.locale.models
 
 import androidx.room.TypeConverter
 

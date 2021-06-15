@@ -3,15 +3,13 @@ package com.fefuproject.timemanager.ui
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
 import androidx.navigation.findNavController
 import com.fefuproject.timemanager.R
 import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
 import com.fefuproject.timemanager.components.Constants.APP_PREF_SETTINGS
-import com.fefuproject.timemanager.logic.db.AppDatabase
+import com.fefuproject.timemanager.logic.locale.db.AppDatabase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase

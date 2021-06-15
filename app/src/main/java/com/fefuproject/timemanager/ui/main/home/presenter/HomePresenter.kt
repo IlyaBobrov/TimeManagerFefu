@@ -2,8 +2,7 @@ package com.fefuproject.timemanager.ui.main.home.presenter
 
 import android.util.Log
 import com.fefuproject.timemanager.base.presenter.BasePresenter
-import com.fefuproject.timemanager.logic.db.AppDatabase
-import com.fefuproject.timemanager.logic.models.NoteModel
+import com.fefuproject.timemanager.logic.locale.db.AppDatabase
 import com.fefuproject.timemanager.ui.main.home.interactor.IHomeInteractor
 import com.fefuproject.timemanager.ui.main.home.view.IHomeView
 import kotlinx.coroutines.*

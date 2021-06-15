@@ -1,4 +1,4 @@
-package com.fefuproject.timemanager.logic.models
+package com.fefuproject.timemanager.logic.locale.models
 
 import androidx.room.Dao
 import androidx.room.Delete
