@@ -6,6 +6,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import kotlinx.parcelize.Parcelize
+import java.util.*
 
 @Parcelize
 @Entity
@@ -14,6 +15,9 @@ data class NoteModel(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = 0,
 
+    @ColumnInfo(name = "uid")
+    val uid: String? = UUID.randomUUID().toString(),
+
     @ColumnInfo(name = "title")
     val title: String? = null,
 
@@ -21,8 +25,8 @@ data class NoteModel(
     val description: String? = null,
 
     @ColumnInfo(name = "category")
-    @TypeConverters(CategoryConverter::class)
-    val category: CategoryModel? = null as CategoryModel,
+//    @TypeConverters(CategoryConverter::class)
+    val category: String? = null ,
 
     @ColumnInfo(name = "date_start")
     val dateStart: String? = null,

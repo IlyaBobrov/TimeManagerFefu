@@ -15,15 +15,23 @@ import com.fefuproject.timemanager.R.id.itemCheckBox
 import com.fefuproject.timemanager.base.BaseFragment
 import com.fefuproject.timemanager.components.Constants.APP_CATEGORY_PREF
 import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE
+import com.fefuproject.timemanager.components.Constants.APP_PREF_OFFLINE_CHANGE
 import com.fefuproject.timemanager.databinding.FragmentHomeBinding
 import com.fefuproject.timemanager.logic.db.AppDatabase
+import com.fefuproject.timemanager.logic.firebase.models.CategoryFirebase
+import com.fefuproject.timemanager.logic.firebase.models.NoteBodyFirebase
+import com.fefuproject.timemanager.logic.firebase.models.NoteFirebase
 import com.fefuproject.timemanager.logic.models.CategoryModel
 import com.fefuproject.timemanager.logic.models.NoteModel
 import com.fefuproject.timemanager.ui.MainActivity
+import com.fefuproject.timemanager.ui.MainActivity.Companion.mainAuth
 import com.fefuproject.timemanager.ui.MainActivity.Companion.sharedPreferences
 import com.fefuproject.timemanager.ui.main.home.adapters.HomeAdapter
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.*
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.*
-import java.text.FieldPosition
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 
@@ -38,7 +46,10 @@ class HomeFragment : BaseFragment(),
     private lateinit var updateListJob: Job
     private lateinit var initCategoryJob: Job
     private lateinit var sortByCategoryJob: Job
-    private lateinit var setCompiteJob: Job
+    private lateinit var setCompleteJob: Job
+    private lateinit var insertAndDeleteListJop: Job
+    private lateinit var deleteAllNoteJob: Job
+    private lateinit var deleteAllCategoryJob: Job
 
     override val coroutineContext: CoroutineContext = Dispatchers.Main + job
 
@@ -50,16 +61,24 @@ class HomeFragment : BaseFragment(),
         const val KEY_CREATE = "KEY_CREATE"
         const val KEY_EDIT = "KEY_EDIT"
         const val KEY_DEFAULT = "KEY_DEFAULT"
+        const val FIREBASE_ITEM = "items"
+        const val FIREBASE_CATEGORIES = "categories"
     }
 
     private lateinit var db: AppDatabase
     private lateinit var data: List<NoteModel>
-    private lateinit var folders: List<CategoryModel>
+    private lateinit var dataFolders: List<CategoryModel>
 
     private var statusOffline: Boolean = false
-    private var currentCategory: String? = "Все"
+    private var statusUpdateOfflineChange: Boolean = false
+    private var statusUpdateNoteOfflineChange: Boolean = false
+    private var statusUpdateCategoryOfflineChange: Boolean = false
+
+    private var currentCategory: String? = "-"
     private val adapterHome = HomeAdapter(this)
     private var _binding: FragmentHomeBinding? = null
+
+    private lateinit var databaseFirebase: DatabaseReference
 
     private val binding: FragmentHomeBinding
         get() = _binding!!
@@ -76,21 +95,38 @@ class HomeFragment : BaseFragment(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         statusOffline = sharedPreferences.getBoolean(APP_PREF_OFFLINE, false)
-        currentCategory = sharedPreferences.getString(APP_CATEGORY_PREF, "Все")
+        statusUpdateOfflineChange = sharedPreferences.getBoolean(APP_PREF_OFFLINE_CHANGE, false)
+        statusUpdateNoteOfflineChange = statusUpdateOfflineChange
+        statusUpdateCategoryOfflineChange = statusUpdateOfflineChange
+        currentCategory = sharedPreferences.getString(APP_CATEGORY_PREF, "-")
         initToolBar()
+        setupLocalDb()
         initSwipeRefreshAndScroll()
         initMainRecycler()
-        initDB()
+        initDatabase()
         onListeners()
-        Log.d(TAG, "onViewCreated: ")
+    }
+
+    private fun setupLocalDb() {
+        db = AppDatabase.invoke(requireContext())
+    }
+
+    private fun initDatabase() {
+        initLocalDb()
+        if (!statusOffline)
+            initFirebaseDb()
     }
 
     private fun initSwipeRefreshAndScroll() {
         //swipeRefresh
         binding.swipeContainerHome.setOnRefreshListener {
 
-            updateHomeInfo()
+            if (statusOffline)
+                reloadHomeInfoFromLocalDb()
+            else
+                updateHomeInfoFromFirebase()
         }
+
         //scroll
         val rvs = object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -103,35 +139,6 @@ class HomeFragment : BaseFragment(),
         binding.rvHome.addOnScrollListener(rvs)
     }
 
-    private fun initDB() {
-        db = AppDatabase.invoke(requireContext())
-        binding.swipeContainerHome.isRefreshing = true
-        initDbJob = launch {
-            val localData = withContext(Dispatchers.IO) {
-                db.noteModelDao().getAll()
-            }
-            if (localData.isNullOrEmpty()) {
-                withContext(Dispatchers.IO) {
-                    db.noteModelDao().insertAll(
-                        NoteModel(
-                            null,
-                            "Заголовок",
-                            "Описание",
-                            CategoryModel(null, "Работа"),
-                            "17 5 2021",
-                            "18 5 2021",
-                            false
-                        )
-                    )
-                    db.categoryModelDao().insertAll(CategoryModel(null, "Все"))
-                    db.categoryModelDao().insertAll(CategoryModel(null, "Работа"))
-                    db.categoryModelDao().insertAll(CategoryModel(null, "Учеба"))
-                }
-            }
-            sortByCategory()
-            getCategories()
-        }
-    }
 
     /*private fun convertToCategoryList(list: List<Note>): MutableList<ListItem> {
         //разбиваем на категории
@@ -160,15 +167,9 @@ class HomeFragment : BaseFragment(),
     private fun initMainRecycler() {
         binding.rvHome.apply {
             layoutManager = LinearLayoutManager(context)
-//            adapterHome.submitList(null)
             adapter = adapterHome
         }
 
-    }
-
-    private fun updateHomeInfo() {
-        adapterHome.submitList(null)
-        sortByCategory()
     }
 
     //для отображения выбранных элементов в toolbar
@@ -206,74 +207,6 @@ class HomeFragment : BaseFragment(),
         actionMode?.title = "1 выбрано"
     }*/
 
-    fun getCategories() {
-        initCategoryJob = launch {
-            folders = withContext(Dispatchers.IO) {
-                db.categoryModelDao().getAll()
-            }
-            binding.topNavigationSpinner.adapter
-            initSpinner(folders)
-        }
-    }
-
-    private fun initSpinner(list: List<CategoryModel>) {
-
-        val arrayList = arrayListOf<String>()
-        list.forEach {
-            arrayList.add(it.title.toString())
-        }
-
-        val spinnerAdapter: SpinnerAdapter = ArrayAdapter(
-            this.requireContext(), R.layout.custom_spinner_item, arrayList
-        )
-        (spinnerAdapter as ArrayAdapter<*>).setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
-        binding.topNavigationSpinner.adapter = spinnerAdapter
-        binding.topNavigationSpinner.setSelection(getIngex(binding.topNavigationSpinner))
-        binding.topNavigationSpinner.onItemSelectedListener = object : OnItemSelectedListener {
-
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-                currentCategory = arrayList[position]
-                sharedPreferences.edit().putString(APP_CATEGORY_PREF, currentCategory).apply()
-                sortByCategory()
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                Toast.makeText(requireContext(), "Ничего не выбано", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun getIngex(spinner: Spinner): Int {
-        for (i in 0..spinner.count) {
-            if (spinner.getItemAtPosition(i).toString() == currentCategory) {
-                return i
-            }
-        }
-        return 0
-    }
-
-    private fun sortByCategory() {
-        binding.swipeContainerHome.isRefreshing = true
-        sortByCategoryJob = launch {
-            data = if (currentCategory == "Все") {
-                withContext(Dispatchers.IO) {
-                    db.noteModelDao().getAll()
-                }
-            } else {
-                withContext(Dispatchers.IO) {
-                    db.noteModelDao().findByCategory(currentCategory.toString())
-                }
-            }
-            adapterHome.submitList(data.asReversed())
-            binding.swipeContainerHome.isRefreshing = false
-        }
-    }
-
     private fun initToolBar() {
         binding.topAppBar.setNavigationOnClickListener {
             // Handle navigation icon press
@@ -296,7 +229,8 @@ class HomeFragment : BaseFragment(),
                     true
                 }
                 R.id.tbClear -> {
-
+                    deleteAllNoteLocalDb()
+                    deleteAllNoteFirebase()
                     true
                 }
                 else -> false
@@ -318,52 +252,677 @@ class HomeFragment : BaseFragment(),
                 ?.observe(viewLifecycleOwner)
                 {
                     //todo добавить заметку в бд и обновить список
-                    insertInDbJob = launch {
-                        withContext(Dispatchers.IO) {
-                            db.noteModelDao().insertAll(it)
-                        }
-                        sortByCategory()
-                    }
+                    if (statusOffline)
+                        insertNoteLocalDb(it)
+
+                    pushNoteFirebase(convertNoteToFirebase(it))
 
                     savedStateHandle.remove<NoteModel>(KEY_CREATE)
                 }
 
             this?.savedStateHandle?.getLiveData<NoteModel>(KEY_EDIT)?.observe(viewLifecycleOwner) {
                 //todo обновить заметку
-                updateListJob = launch {
-                    withContext(Dispatchers.IO) {
-                        db.noteModelDao().updateNote(it)
-                    }
-                    sortByCategory()
-                }
+                if (statusOffline)
+                    updateNoteLocalDb(it)
+
+//                pushUpdateNoteFirebase(convertNoteToFirebase(it))
+                pushNoteFirebase(convertNoteToFirebase(it))
+
                 savedStateHandle.remove<NoteModel>(KEY_EDIT)
             }
 
         }
     }
 
-    override fun onItemClick(v:View, item: NoteModel, position: Int) {
-        when(v.id){
+
+    override fun onItemClick(v: View, item: NoteModel, position: Int) {
+        when (v.id) {
             itemCheckBox -> {
                 Log.d(TAG, "onItemClick: ")
-                val it:NoteModel = item
-                setCompiteJob = launch {
-                    withContext(Dispatchers.IO){
-                        it.complete = item.complete?.not()
-                        db.noteModelDao().updateNote(it)
-                    }
-                    adapterHome.notifyItemChanged(position)
-                }
+                var it: NoteModel = item
+                it.complete = it.complete?.not()
+                setCompleteNoteLocalDb(it, position)
+                pushCompleteNoteFirebase(convertNoteToFirebase(it))
             }
-            else ->{
+            else -> {
                 val bundle = Bundle()
                 bundle.putString(CREATE_TASK, KEY_EDIT)
                 bundle.putParcelable(NOTE_TASK, item)
-                findNavController().navigate(R.id.action_homeFragment_to_taskFragment, args = bundle)
+                findNavController().navigate(
+                    R.id.action_homeFragment_to_taskFragment,
+                    args = bundle
+                )
+            }
+        }
+    }
+
+    //TODO FIREBASE --------------------------------------------------------------------------------
+
+    private fun initFirebaseDb() {
+
+        if (!statusOffline && checkConnectionFirebase()) {
+
+            try {
+                databaseFirebase =
+                    FirebaseDatabase.getInstance(
+                        "https://taskmanagerfefu-default-rtdb.asia-southeast1.firebasedatabase.app"
+                    ).reference
+
+                getDataFromFirebase()
+            } catch (e: Exception) {
+                Log.e(TAG, "initFirebaseDb: ${e.message.toString()}", e)
+                Toast.makeText(requireContext(), e.message.toString(), Toast.LENGTH_LONG).show()
+            }
+        } else {
+            user_id = UUID.randomUUID().toString()
+        }
+
+    }
+
+    private fun getDataFromFirebase() {
+        if (checkConnectionFirebase()) {
+            getNotesFromFirebase()
+            getCategoriesFromFirebase()
+        }
+    }
+
+    private var user = mainAuth.currentUser
+    private var user_id = mainAuth.currentUser?.uid
+
+    var noteListFirebase = mutableListOf<NoteFirebase>()
+    var categoryListFirebase = mutableListOf<CategoryFirebase>()
+
+
+    private fun getCategoriesFromFirebase() {
+        user_id = Firebase.auth.uid
+        user = Firebase.auth.currentUser
+        Log.d(TAG, "getCategoriesFromFire: ${user_id.toString()}")
+
+        databaseFirebase.child(user_id.toString()).child("categories")
+            .addValueEventListener(
+                object : ValueEventListener {
+
+                    override fun onDataChange(snapshot: DataSnapshot) {
+
+                        categoryListFirebase.clear()
+                        snapshot.children.forEach {
+                            categoryListFirebase.add(
+                                CategoryFirebase(
+                                    it.key.toString(),
+                                    (it.value as Map<*, *>)["title"].toString()
+                                )
+                            )
+                        }
+                        Log.d(TAG, "fireCategoriesList: $categoryListFirebase")
+//                        initSpinner(fireCategoriesList)
+                        if (statusUpdateOfflineChange) {
+                            statusUpdateCategoryOfflineChange = false
+                            firstInitSetCategoryFirebaseToLocal()
+                            checkChangeUpdate()
+                        } else
+                            setCategoryFirebaseToLocal()
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.e(TAG, "onCancelled: Error", error.toException())
+                    }
+
+                }
+            )
+    }
+
+    private fun getNotesFromFirebase() {
+        databaseFirebase.child(user_id.toString()).child("items").addValueEventListener(
+            object : ValueEventListener {
+
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    Log.d(TAG, "onDataChange")
+                    noteListFirebase.clear()
+                    snapshot.children.forEach {
+                        val v = it.value as Map<*, *>
+                        val complete =
+                            (it.value as HashMap<String, Boolean>).get("isComplited").toString()
+                        Log.e(TAG, "isComplited: $complete")
+                        noteListFirebase.add(
+                            NoteFirebase(
+                                it.key.toString(),
+                                v["title"].toString(),
+                                v["text"].toString(),
+                                v["dateToDo"].toString(),
+                                v["deadline"].toString(),
+                                v["isComplited"].toString().toBoolean(),
+                                v["category"].toString()
+                            )
+                        )
+                    }
+                    Log.d(TAG, "fireItemsList: $noteListFirebase")
+
+                    if (statusUpdateOfflineChange) {
+                        statusUpdateNoteOfflineChange = false
+                        firstInitSetNoteFirebaseToLocal()
+                        checkChangeUpdate()
+                    } else
+                        setNoteFirebaseToLocal()
+
+                    binding.swipeContainerHome.isRefreshing = false
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e(TAG, "onCancelled: Error", error.toException())
+                }
+
+            }
+        )
+    }
+
+    //метод для поверки локальных данных и синхронизации с firebase
+    private fun checkChangeUpdate() {
+        if (!statusUpdateNoteOfflineChange && !statusUpdateCategoryOfflineChange) {
+            statusUpdateOfflineChange = false
+            sharedPreferences.edit().putBoolean(APP_PREF_OFFLINE_CHANGE, false).apply()
+        }
+    }
+
+    private fun firstInitSetCategoryFirebaseToLocal() {
+        val convertCategoryListLocale =
+            mutableListOf<CategoryModel>()  //преобразованный Firebase лист
+        var resultCategoryListLocale = mutableListOf<CategoryModel>()   //список на отображение
+        val needInsertInLocalCategoryList = mutableListOf<CategoryModel>() //список на вставку
+        val needUpdateInLocalCategoryList = mutableListOf<CategoryModel>() //список на обновление
+
+        categoryListFirebase.forEach {
+            convertCategoryListLocale.add(convertCategoryToLocal(it))
+        }
+
+        resultCategoryListLocale = convertCategoryListLocale
+
+        var coincidence: Boolean
+
+        //todo может работать неправильно
+        dataFolders.forEach { localItem ->
+            coincidence = false
+            convertCategoryListLocale.forEach { fireItem ->
+                if (localItem.uid == fireItem.uid) {
+                    coincidence = true
+                    needUpdateInLocalCategoryList.add(localItem)
+                    return@forEach
+                }
+            }
+            if (!coincidence) {
+                resultCategoryListLocale.add(localItem)
             }
         }
 
+        convertCategoryListLocale.forEach { fireItem ->
+            coincidence = false
+            dataFolders.forEach { localItem ->
+                if (localItem.uid == fireItem.uid)
+                    coincidence = true
+            }
+            if (!coincidence) {
+                needInsertInLocalCategoryList.add(fireItem)
+            }
+        }
+        Log.e(TAG, "setCategoryFirebaseToLocal: ----------")
+        Log.i(TAG, "Common list: $resultCategoryListLocale")
+        Log.i(TAG, "Need insert list: $needInsertInLocalCategoryList")
+        Log.i(TAG, "Need update list: $needUpdateInLocalCategoryList")
 
+        insertListCategoryLocalDb(needInsertInLocalCategoryList as List<CategoryModel>)
+        updateListCategoryLocalDb(needUpdateInLocalCategoryList as List<CategoryModel>)
+    }
+
+    private fun firstInitSetNoteFirebaseToLocal() {
+        val convertNoteListLocale = mutableListOf<NoteModel>()  //преобразованный Firebase лист
+        var resultNoteListLocale = mutableListOf<NoteModel>()   //список на отображение
+        val needInsertInLocalNoteList = mutableListOf<NoteModel>() //список на вставку
+        val needUpdateInLocalNoteList = mutableListOf<NoteModel>() //список на обновление
+        val needPushToFirebaseNoteList = mutableListOf<NoteFirebase>() //список на обновление
+
+        noteListFirebase.forEach {
+            convertNoteListLocale.add(convertNoteToLocal(it))
+        }
+
+        resultNoteListLocale = convertNoteListLocale
+
+        var coincidence: Boolean
+
+        //todo может работать неправильно
+        if (!data.isNullOrEmpty()) {
+            data.forEach { localItem ->
+                coincidence = false
+                convertNoteListLocale.forEach { fireItem ->
+                    if (localItem.uid == fireItem.uid) {
+                        coincidence = true
+                        needUpdateInLocalNoteList.add(localItem)
+                        return@forEach
+                    }
+                }
+                if (!coincidence) {
+                    resultNoteListLocale.add(localItem)
+                    needPushToFirebaseNoteList.add(convertNoteToFirebase(localItem))
+                }
+            }
+
+            convertNoteListLocale.forEach { fireItem ->
+                coincidence = false
+                data.forEach { localItem ->
+                    if (localItem.uid == fireItem.uid)
+                        coincidence = true
+                }
+                if (!coincidence) {
+                    needInsertInLocalNoteList.add(fireItem)
+                }
+            }
+            Log.e(TAG, "setNoteFirebaseToLocal: ----------")
+            Log.i(TAG, "Common list: $resultNoteListLocale")
+            Log.i(TAG, "Need insert list: $needInsertInLocalNoteList")
+            Log.i(TAG, "Need update list: $needUpdateInLocalNoteList")
+            Log.i(TAG, "Need push list: $needPushToFirebaseNoteList")
+
+            insertListNoteLocalDb(needInsertInLocalNoteList as List<NoteModel>)
+            updateListNoteLocalDb(needUpdateInLocalNoteList as List<NoteModel>)
+
+            if (!needPushToFirebaseNoteList.isEmpty())
+                pushNoteListToFirebase(needPushToFirebaseNoteList as List<NoteFirebase>)
+        } else {
+            insertListNoteLocalDb(convertNoteListLocale as List<NoteModel>)
+        }
+
+    }
+
+
+    private fun setNoteFirebaseToLocal() {
+        val convertNoteListLocale = mutableListOf<NoteModel>()  //преобразованный Firebase лист
+
+        noteListFirebase.forEach {
+            convertNoteListLocale.add(convertNoteToLocal(it))
+        }
+
+        deleteAndInsertNewNoteListLocalDb(convertNoteListLocale)
+    }
+
+    private fun setCategoryFirebaseToLocal() {
+        val convertCategoryListLocale =
+            mutableListOf<CategoryModel>()  //преобразованный Firebase лист
+
+        var flagDefValue = false
+        categoryListFirebase.forEach {
+            if (it.title == "-") flagDefValue = true
+        }
+
+        if (!flagDefValue)
+            convertCategoryListLocale.add(
+                CategoryModel(null, UUID.randomUUID().toString(), "-")
+            )
+
+        categoryListFirebase.forEach {
+            convertCategoryListLocale.add(convertCategoryToLocal(it))
+        }
+
+        deleteAndInsertNewCategoryListLocalDb(convertCategoryListLocale as List<CategoryModel>)
+    }
+
+    private fun convertNoteToFirebase(it: NoteModel): NoteFirebase {
+        return NoteFirebase(
+            id = it.uid ?: UUID.randomUUID().toString(),
+            title = it.title.toString(),
+            text = it.description.toString(),
+            dateToDo = it.dateStart.toString(),
+            deadline = it.dateEnd.toString(),
+            isComplited = it.complete.toString().toBoolean(),
+            category = it.category.toString()
+//            it.category?.title.toString()
+        )
+    }
+
+    private fun convertCategoryToLocal(it: CategoryFirebase): CategoryModel =
+        CategoryModel(null, it.id, it.title)
+
+
+    private fun convertNoteToLocal(it: NoteFirebase): NoteModel =
+        NoteModel(
+            null,
+            it.id,
+            it.title,
+            it.text,
+            it.category,
+            it.dateToDo,
+            it.deadline,
+            it.isComplited
+        )
+
+
+    private fun pushNoteFirebase(it: NoteFirebase) {
+        if (checkConnectionFirebase()) {
+            Log.d(TAG, "pushNewNoteFirebase: $it")
+            databaseFirebase
+                .child(user_id.toString())
+                .child(FIREBASE_ITEM)
+                .child(it.id.toString())
+                .setValue(convertBodyNote(it))
+                .addOnSuccessListener {
+//                    updateHomeInfoFromFirebase()
+                }.addOnFailureListener {
+                    Toast.makeText(requireContext(), it.message.toString(), Toast.LENGTH_LONG)
+                        .show()
+                    Log.e(TAG, "pushNewNoteFirebase: ${it.message}", it)
+                }
+        }
+    }
+
+    private fun pushNoteListToFirebase(noteList: List<NoteFirebase>) {
+        if (checkConnectionFirebase()) {
+            Log.e(TAG, "push list")
+            noteList.forEach {
+                databaseFirebase
+                    .child(user_id.toString())
+                    .child(FIREBASE_ITEM)
+                    .child(it.id.toString())
+                    .setValue(convertBodyNote(it))
+                    .addOnFailureListener {
+                        Toast.makeText(requireContext(), it.message.toString(), Toast.LENGTH_LONG)
+                            .show()
+                        Log.e(TAG, "pushNoteListToFirebase: ${it.message}", it)
+                    }
+            }
+
+        }
+    }
+
+    private fun convertBodyNote(it: NoteFirebase): NoteBodyFirebase =
+        NoteBodyFirebase(it.title, it.text, it.dateToDo, it.deadline, it.isComplited, it.category)
+
+    private fun updateHomeInfoFromFirebase() {
+        getDataFromFirebase()
+    }
+
+    private fun checkConnectionFirebase(): Boolean {
+        if (/*Firebase.auth.currentUser != user && !*/statusOffline) {
+            Toast.makeText(
+                requireContext(),
+                "Локальное сохранение",
+                Toast.LENGTH_LONG
+            ).show()
+            statusUpdateOfflineChange = true
+            statusOffline = true
+            sharedPreferences.edit().putBoolean(APP_PREF_OFFLINE_CHANGE, true).apply()
+            return false
+        }
+        return true
+    }
+
+    private fun deleteAllNoteFirebase() {
+        if (checkConnectionFirebase()) {
+            Log.e(TAG, "push list")
+            databaseFirebase
+                .child(user_id.toString())
+                .child(FIREBASE_ITEM)
+                .removeValue()
+                .addOnFailureListener {
+                    Toast.makeText(requireContext(), it.message.toString(), Toast.LENGTH_LONG)
+                        .show()
+                    Log.e(TAG, "pushNoteListToFirebase: ${it.message}", it)
+                }
+        }
+    }
+
+    private fun pushCompleteNoteFirebase(it: NoteFirebase) {
+        Log.d(TAG, "pushCompleteNoteFirebase: 1")
+        if (checkConnectionFirebase()) {
+            Log.d(TAG, "pushCompleteNoteFirebase: 2")
+            databaseFirebase
+                .child(user_id.toString())
+                .child(FIREBASE_ITEM)
+                .child(it.id.toString())
+                .setValue(convertBodyNote(it))
+                .addOnFailureListener {
+                    Toast.makeText(requireContext(), it.message.toString(), Toast.LENGTH_LONG)
+                        .show()
+                    Log.e(TAG, "pushCompleteNoteFirebase: ${it.message}", it)
+                }
+        }
+    }
+
+    //TODO LOCALE DATABASE--------------------------------------------------------------------------
+
+    private fun initSpinnerFromLocalDb(list: List<CategoryModel>) {
+
+        val arrayList = arrayListOf<String>()
+        list.forEach {
+            arrayList.add(it.title.toString())
+        }
+
+        val spinnerAdapter: SpinnerAdapter = ArrayAdapter(
+            this.requireContext(), R.layout.custom_home_spinner_item, arrayList
+        )
+        (spinnerAdapter as ArrayAdapter<*>).setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
+        binding.topNavigationSpinner.adapter = spinnerAdapter
+        binding.topNavigationSpinner.setSelection(getIngex(binding.topNavigationSpinner))
+        binding.topNavigationSpinner.onItemSelectedListener = object : OnItemSelectedListener {
+
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                currentCategory = arrayList[position]
+                sharedPreferences.edit().putString(APP_CATEGORY_PREF, currentCategory).apply()
+                sortByCategoryLocalDb()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                Toast.makeText(requireContext(), "Ничего не выбано", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun getIngex(spinner: Spinner): Int {
+        Log.d(TAG, "spinner.count: ${spinner.count}")
+        val sizeSpinner = spinner.count - 1
+        for (i in 0..sizeSpinner) {
+            if (spinner.getItemAtPosition(i).toString() == currentCategory) {
+                return i
+            }
+        }
+        return 0
+    }
+
+    private fun initLocalDb() {
+        binding.swipeContainerHome.isRefreshing = true
+        initDbJob = launch {
+            val localData = withContext(Dispatchers.IO) {
+                db.noteModelDao().getAll()
+            }
+            if (localData.isNullOrEmpty()) {
+                withContext(Dispatchers.IO) {
+                    /*db.noteModelDao().insertAll(
+                        NoteModel(
+                            null,
+                            UUID.randomUUID().toString(),
+                            "Заголовок",
+                            "Описание",
+//                            CategoryModel(null, "Работа"),
+                            "Работа",
+                            "17 5 2021",
+                            "18 5 2021",
+                            false
+                        )
+                    )*/
+                    /*db.categoryModelDao()
+                        .insertAll(CategoryModel(null, UUID.randomUUID().toString(), "-"))*/
+                    /*db.categoryModelDao()
+                        .insertAll(CategoryModel(null, UUID.randomUUID().toString(), "Работа"))
+                    db.categoryModelDao()
+                        .insertAll(
+                            CategoryModel(
+                                null,
+                                UUID.randomUUID().toString(),
+                                "Учеба"
+                            )
+                        )*/
+                }
+            }
+            data =
+                withContext(Dispatchers.IO) {
+                    db.noteModelDao().getAll()
+                }
+
+            getCategoriesLocalDb()
+
+            if (statusOffline) {
+                sortByCategoryLocalDb()
+            }
+        }
+    }
+
+    private fun sortByCategoryLocalDb() {
+        binding.swipeContainerHome.isRefreshing = true
+        sortByCategoryJob = launch {
+            data = if (currentCategory == "-") {
+                withContext(Dispatchers.IO) {
+                    db.noteModelDao().getAll()
+                }
+            } else {
+                withContext(Dispatchers.IO) {
+                    db.noteModelDao().findByCategory(currentCategory.toString())
+                }
+            }
+            Log.w(TAG, "final data: $data")
+            adapterHome.submitList(data.asReversed())
+            binding.swipeContainerHome.isRefreshing = false
+        }
+    }
+
+    fun getCategoriesLocalDb() {
+        initCategoryJob = launch {
+            dataFolders = withContext(Dispatchers.IO) {
+                db.categoryModelDao().getAll()
+            }
+            if (dataFolders.isEmpty()) {
+                withContext(Dispatchers.IO) {
+                    db.categoryModelDao()
+                        .insertAll(CategoryModel(null, UUID.randomUUID().toString(), "-"))
+                }
+                dataFolders = withContext(Dispatchers.IO) {
+                    db.categoryModelDao().getAll()
+                }
+            }
+
+            binding.topNavigationSpinner.adapter
+            initSpinnerFromLocalDb(dataFolders)
+        }
+    }
+
+    private fun reloadHomeInfoFromLocalDb() {
+        adapterHome.submitList(null)
+        sortByCategoryLocalDb()
+    }
+
+    private fun updateNoteLocalDb(it: NoteModel) {
+        updateListJob = launch {
+            withContext(Dispatchers.IO) {
+                db.noteModelDao().updateNote(it)
+            }
+            sortByCategoryLocalDb()
+        }
+    }
+
+    private fun updateListNoteLocalDb(noteList: List<NoteModel>) {
+        updateListJob = launch {
+            withContext(Dispatchers.IO) {
+                db.noteModelDao().updateNoteList(noteList)
+            }
+            sortByCategoryLocalDb()
+        }
+    }
+
+    private fun insertListNoteLocalDb(noteList: List<NoteModel>) {
+        updateListJob = launch {
+            withContext(Dispatchers.IO) {
+                db.noteModelDao().insertNoteList(noteList)
+            }
+            sortByCategoryLocalDb()
+        }
+    }
+
+    private fun insertListCategoryLocalDb(categoryList: List<CategoryModel>) {
+        updateListJob = launch {
+            withContext(Dispatchers.IO) {
+                db.categoryModelDao().insertCategoryList(categoryList)
+            }
+            sortByCategoryLocalDb()
+        }
+    }
+
+    private fun updateListCategoryLocalDb(categoryList: List<CategoryModel>) {
+        updateListJob = launch {
+            withContext(Dispatchers.IO) {
+                db.categoryModelDao().updateCategoryList(categoryList)
+            }
+            sortByCategoryLocalDb()
+            getCategoriesLocalDb()
+        }
+    }
+
+    private fun insertNoteLocalDb(it: NoteModel) {
+        insertInDbJob = launch {
+            withContext(Dispatchers.IO) {
+                db.noteModelDao().insertAll(it)
+            }
+            if (!statusOffline) {
+                sortByCategoryLocalDb()
+                getCategoriesLocalDb()
+            }
+        }
+    }
+
+    private fun deleteAndInsertNewNoteListLocalDb(noteList: List<NoteModel>) {
+        insertAndDeleteListJop = launch {
+            withContext(Dispatchers.IO) {
+//                if (!data.isNullOrEmpty())
+//                    db.noteModelDao().deleteNoteList(data)
+                    db.noteModelDao().deleteAll()
+            }
+            withContext(Dispatchers.IO) {
+                db.noteModelDao().insertNoteList(noteList)
+            }
+
+            reloadHomeInfoFromLocalDb()
+        }
+    }
+
+    private fun deleteAllNoteLocalDb() {
+        deleteAllNoteJob = launch {
+            withContext(Dispatchers.IO) {
+                db.noteModelDao().deleteNoteList(data)
+            }
+            sortByCategoryLocalDb()
+        }
+    }
+
+    private fun deleteAndInsertNewCategoryListLocalDb(categoryList: List<CategoryModel>) {
+        deleteAllCategoryJob = launch {
+            withContext(Dispatchers.IO) {
+                if (!dataFolders.isNullOrEmpty())
+                    db.categoryModelDao().deleteCategoryList(dataFolders)
+            }
+            withContext(Dispatchers.IO) {
+                db.categoryModelDao().insertCategoryList(categoryList)
+            }
+            getCategoriesLocalDb()
+            sortByCategoryLocalDb()
+        }
+    }
+
+    private fun setCompleteNoteLocalDb(it: NoteModel, position: Int) {
+        setCompleteJob = launch {
+            withContext(Dispatchers.IO) {
+                db.noteModelDao().updateNote(it)
+            }
+            adapterHome.notifyItemChanged(position)
+        }
     }
 
 }

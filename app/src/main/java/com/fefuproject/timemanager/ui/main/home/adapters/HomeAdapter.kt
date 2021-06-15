@@ -81,15 +81,17 @@ class HomeAdapter(
             itemView.setOnClickListener(this)
             completeCheckBox.setOnClickListener(this)
 
-            if (currentItem.category?.title == "Все"){
+//            if (currentItem.category?.title == "-"){
+            if (currentItem.category == "-"){
                 this.category.visibility = View.GONE
             }else {
                 this.category.visibility = View.VISIBLE
-                this.category.text = currentItem.category?.title
+//                this.category.text = currentItem.category?.title
+                this.category.text = currentItem.category
             }
             dateStart.text = currentItem.dateStart
             Log.d("TAG", "bindItemHolder: ${currentItem.dateEnd}")
-            if (currentItem.dateEnd != null) {
+            if (currentItem.dateEnd != null && currentItem.dateEnd != "null") {
                 dateEnd.isVisible
                 this.dateEnd.text = currentItem.dateEnd
             } else {

@@ -23,9 +23,21 @@ interface NoteModelDao {
     @Update
     fun updateNote(note: NoteModel)
 
+    @Update
+    fun updateNoteList(noteList: List<NoteModel>)
+
+    @Insert
+    fun insertNoteList(noteList: List<NoteModel>)
+
     @Insert
     fun insertAll(vararg notes: NoteModel)
 
     @Delete
-    fun delete(note: NoteModel)
+    fun deleteNote(note: NoteModel)
+
+    @Delete
+    fun deleteNoteList(noteList: List<NoteModel>)
+
+    @Query("DELETE FROM NoteModel")
+    fun deleteAll()
 }

@@ -5,7 +5,7 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/is_asprog_ii"
-            android:tint="@color/primary"/>
+            android:src="@drawable/ic_todolist_png"
+            />
     </item>
 </layer-list>

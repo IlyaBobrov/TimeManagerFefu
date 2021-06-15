@@ -1,6 +1,7 @@
 package com.fefuproject.timemanager.logic.models
 
 import androidx.room.TypeConverter
+import java.util.*
 
 
 class CategoryConverter {
@@ -11,6 +12,6 @@ class CategoryConverter {
 
     @TypeConverter
     fun toCategory(data: String): CategoryModel {
-        return CategoryModel(null ,data)
+        return CategoryModel(null, data)
     }
 }

@@ -14,14 +14,19 @@ import androidx.navigation.fragment.findNavController
 import com.fefuproject.timemanager.R
 import com.fefuproject.timemanager.databinding.FragmentTaskBinding
 import com.fefuproject.timemanager.logic.db.AppDatabase
+import com.fefuproject.timemanager.logic.firebase.models.CategoryFirebase
 import com.fefuproject.timemanager.logic.models.CategoryModel
 import com.fefuproject.timemanager.logic.models.NoteModel
+import com.fefuproject.timemanager.ui.MainActivity.Companion.mainAuth
 import com.fefuproject.timemanager.ui.main.home.view.HomeFragment.Companion.CREATE_TASK
+import com.fefuproject.timemanager.ui.main.home.view.HomeFragment.Companion.FIREBASE_CATEGORIES
 import com.fefuproject.timemanager.ui.main.home.view.HomeFragment.Companion.KEY_CREATE
 import com.fefuproject.timemanager.ui.main.home.view.HomeFragment.Companion.KEY_DEFAULT
 import com.fefuproject.timemanager.ui.main.home.view.HomeFragment.Companion.KEY_EDIT
 import com.fefuproject.timemanager.ui.main.home.view.HomeFragment.Companion.NOTE_TASK
 import com.fefuproject.timemanager.ui.main.task.dialog.CategoryDialog
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.coroutines.CoroutineContext
@@ -52,6 +57,7 @@ class TaskFragment : Fragment(), CategoryDialog.NoticeDialogListener, CoroutineS
     var dateStart: String? = null
     var dateEnd: String? = null
     var category: CategoryModel? = null
+    var categoryTitle: String? = null
     var complete: Boolean? = null
 
     lateinit var categoryList: List<CategoryModel>
@@ -148,9 +154,14 @@ class TaskFragment : Fragment(), CategoryDialog.NoticeDialogListener, CoroutineS
     }
 
     private fun getIngex(spinner: Spinner): Int {
-        if (note?.category?.title == null) return 0
-        for (i in 0..spinner.count) {
-            if (spinner.getItemAtPosition(i).toString() == note?.category?.title.toString()) {
+//        if (note?.category?.title == null) return 0
+        if (note?.category == null) return 0
+        val sizeSpinner = spinner.count - 1
+        for (i in 0..sizeSpinner) {
+//            if (spinner.getItemAtPosition(i).toString() == note?.category?.title.toString()) {
+            if (spinner.getItemAtPosition(i).toString() ==
+                note?.category.toString()
+            ) {
                 return i
             }
         }
@@ -170,10 +181,10 @@ class TaskFragment : Fragment(), CategoryDialog.NoticeDialogListener, CoroutineS
                 returnKey = KEY_EDIT
                 try {
                     note = arguments?.getParcelable<NoteModel>(NOTE_TASK)!!
+                    Log.e(TAG, "initView: note: $note")
                 } catch (e: Exception) {
                     Toast.makeText(requireContext(), "${e.message}", Toast.LENGTH_SHORT).show()
                 }
-                Toast.makeText(requireContext(), "Edit task", Toast.LENGTH_SHORT).show()
                 initFields(returnKey)
             }
             else -> {
@@ -241,6 +252,7 @@ class TaskFragment : Fragment(), CategoryDialog.NoticeDialogListener, CoroutineS
             category = categoryList.first {
                 it.title == selectedCategory.title
             }
+            categoryTitle = category?.title
             dateStart = "$dayStart $monthStart $yearStart"
             Log.d(TAG, "buildModel: $dayEnd")
             dateEnd =
@@ -248,9 +260,23 @@ class TaskFragment : Fragment(), CategoryDialog.NoticeDialogListener, CoroutineS
                     null
                 else
                     "$dayEnd $monthEnd $yearEnd"
-            complete = note?.complete?:false
+            complete = note?.complete ?: false
 
-            note = NoteModel(note?.id, title, description, category, dateStart, dateEnd, complete)
+            val uid =
+                if (note == null && note?.uid == null) UUID.randomUUID().toString() else note!!.uid
+
+            note = NoteModel(
+                note?.id,
+                uid,
+                title,
+                description,
+//                category,
+                categoryTitle,
+                dateStart,
+                dateEnd,
+                complete
+            )
+            Log.e(TAG, "buildModel: note: $note", )
         }
     }
 
@@ -288,11 +314,26 @@ class TaskFragment : Fragment(), CategoryDialog.NoticeDialogListener, CoroutineS
     }
 
     override fun onDialogPositiveClick(dialog: DialogFragment, category: String) {
+        val newCategory = CategoryModel(null, UUID.randomUUID().toString(), category)
         createCategoryJob = launch {
             withContext(Dispatchers.IO) {
-                db.categoryModelDao().insertAll(CategoryModel(null, category))
+                db.categoryModelDao().insertAll(newCategory)
             }
+            pushCategoryToFirebase(newCategory)
             setSpinner()
+        }
+    }
+
+    private fun pushCategoryToFirebase(categoryLocale: CategoryModel) {
+        val it = CategoryFirebase(categoryLocale.uid.toString(), categoryLocale.title.toString())
+        if (!statusOffline) {
+            val databaseFirebase: DatabaseReference =
+                FirebaseDatabase.getInstance(
+                    "https://taskmanagerfefu-default-rtdb.asia-southeast1.firebasedatabase.app"
+                ).reference
+
+            databaseFirebase.child(mainAuth.uid.toString()).child(FIREBASE_CATEGORIES)
+                .child(it.id.toString()).setValue(it.title.toString())
         }
     }
 

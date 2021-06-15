@@ -10,9 +10,9 @@ import com.fefuproject.timemanager.logic.models.*
 
 @Database(
     entities = [NoteModel::class, CategoryModel::class],
-    version = 25
+    version = 34
 )
-@TypeConverters(CategoryConverter::class)
+//@TypeConverters(CategoryConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun noteModelDao(): NoteModelDao
