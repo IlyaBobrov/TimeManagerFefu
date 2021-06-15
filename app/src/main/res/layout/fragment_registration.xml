@@ -39,9 +39,9 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="14dp"
             android:background="@drawable/border"
-            android:maxLength="35"
             android:hint="@string/hint_email"
             android:inputType="textEmailAddress"
+            android:maxLength="35"
             android:padding="10dp" />
 
         <EditText
@@ -53,15 +53,6 @@
             android:background="@drawable/border"
             android:hint="@string/hint_password"
             android:inputType="textPassword"
-            android:padding="10dp" />
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="46dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="15dp"
-            android:background="@drawable/border"
-            android:hint="@string/hint_password_Replay"
             android:padding="10dp" />
 
         <Button

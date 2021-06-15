@@ -43,7 +43,8 @@
             <Spinner
                 android:id="@+id/top_navigation_spinner"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                android:layout_height="match_parent"
+                android:background="#0000"
                 android:gravity="start|center"
                 tools:listitem="@android:layout/list_content" />
 

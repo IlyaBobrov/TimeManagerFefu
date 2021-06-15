@@ -4,8 +4,10 @@
     android:id="@android:id/text1"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:drawableRight="@drawable/ic_triangle"
     android:ellipsize="marquee"
-    android:textColor="@color/white"
     android:singleLine="true"
     android:padding="10dp"
+    android:textColor="@color/secondary_text"
+    android:textSize="17dp"
     android:textAlignment="inherit" />

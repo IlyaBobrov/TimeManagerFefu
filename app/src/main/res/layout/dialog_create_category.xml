@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:gravity="center"
-        android:text="Создание папки"
+        android:text="Новая категория"
         android:theme="@style/ThemeOverlay.H2" />
 
     <TextView
@@ -26,5 +26,6 @@
         android:layout_marginLeft="4dp"
         android:layout_marginTop="16dp"
         android:hint="Название"
+        android:maxLength="35"
         android:inputType="textEmailAddress" />
 </LinearLayout>
