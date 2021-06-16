@@ -33,6 +33,7 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.log
 
 
 class HomeFragment : BaseFragment(),
@@ -108,16 +109,19 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun setupLocalDb() {
+        Log.d(TAG, "1")
         db = AppDatabase.invoke(requireContext())
     }
 
     private fun initDatabase() {
+        Log.d(TAG, "2")
         initLocalDb()
-        if (!statusOffline)
-            initFirebaseDb()
+//        if (!statusOffline)
+        initFirebaseDb()
     }
 
     private fun initSwipeRefreshAndScroll() {
+        Log.d(TAG, "3")
         //swipeRefresh
         binding.swipeContainerHome.setOnRefreshListener {
 
@@ -165,6 +169,8 @@ class HomeFragment : BaseFragment(),
     }*/
 
     private fun initMainRecycler() {
+        Log.d(TAG, "4")
+
         binding.rvHome.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = adapterHome
@@ -208,6 +214,8 @@ class HomeFragment : BaseFragment(),
     }*/
 
     private fun initToolBar() {
+        Log.d(TAG, "5")
+
         binding.topAppBar.setNavigationOnClickListener {
             // Handle navigation icon press
             Toast.makeText(context, getString(R.string.in_develop), Toast.LENGTH_SHORT).show()
@@ -239,6 +247,8 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun onListeners() {
+        Log.d(TAG, "6")
+
         binding.fabHomeAdd.setOnClickListener {
             val bundle = Bundle()
             bundle.putString(CREATE_TASK, KEY_CREATE)
@@ -276,13 +286,14 @@ class HomeFragment : BaseFragment(),
 
 
     override fun onItemClick(v: View, item: NoteModel, position: Int) {
+        Log.d(TAG, "7")
         when (v.id) {
             itemCheckBox -> {
                 Log.d(TAG, "onItemClick: ")
                 var it: NoteModel = item
                 it.complete = it.complete?.not()
                 setCompleteNoteLocalDb(it, position)
-                pushCompleteNoteFirebase(convertNoteToFirebase(it))
+//                pushCompleteNoteFirebase(convertNoteToFirebase(it))
             }
             else -> {
                 val bundle = Bundle()
@@ -299,8 +310,9 @@ class HomeFragment : BaseFragment(),
     //TODO FIREBASE --------------------------------------------------------------------------------
 
     private fun initFirebaseDb() {
+        Log.d(TAG, "8")
 
-        if (!statusOffline && checkConnectionFirebase()) {
+        if (!statusOffline) {
 
             try {
                 databaseFirebase =
@@ -320,6 +332,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun getDataFromFirebase() {
+        Log.d(TAG, "9")
         if (checkConnectionFirebase()) {
             getNotesFromFirebase()
             getCategoriesFromFirebase()
@@ -334,6 +347,7 @@ class HomeFragment : BaseFragment(),
 
 
     private fun getCategoriesFromFirebase() {
+        Log.d(TAG, "10")
         user_id = Firebase.auth.uid
         user = Firebase.auth.currentUser
         Log.d(TAG, "getCategoriesFromFire: ${user_id.toString()}")
@@ -372,6 +386,8 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun getNotesFromFirebase() {
+        Log.d(TAG, "11")
+
         databaseFirebase.child(user_id.toString()).child("items").addValueEventListener(
             object : ValueEventListener {
 
@@ -417,6 +433,8 @@ class HomeFragment : BaseFragment(),
 
     //метод для поверки локальных данных и синхронизации с firebase
     private fun checkChangeUpdate() {
+        Log.d(TAG, "12")
+
         if (!statusUpdateNoteOfflineChange && !statusUpdateCategoryOfflineChange) {
             statusUpdateOfflineChange = false
             sharedPreferences.edit().putBoolean(APP_PREF_OFFLINE_CHANGE, false).apply()
@@ -424,6 +442,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun firstInitSetCategoryFirebaseToLocal() {
+        Log.d(TAG, "13")
         val convertCategoryListLocale =
             mutableListOf<CategoryModel>()  //преобразованный Firebase лист
         var resultCategoryListLocale = mutableListOf<CategoryModel>()   //список на отображение
@@ -473,6 +492,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun firstInitSetNoteFirebaseToLocal() {
+        Log.d(TAG, "14")
         val convertNoteListLocale = mutableListOf<NoteModel>()  //преобразованный Firebase лист
         var resultNoteListLocale = mutableListOf<NoteModel>()   //список на отображение
         val needInsertInLocalNoteList = mutableListOf<NoteModel>() //список на вставку
@@ -533,6 +553,7 @@ class HomeFragment : BaseFragment(),
 
 
     private fun setNoteFirebaseToLocal() {
+        Log.d(TAG, "15")
         val convertNoteListLocale = mutableListOf<NoteModel>()  //преобразованный Firebase лист
 
         noteListFirebase.forEach {
@@ -543,6 +564,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun setCategoryFirebaseToLocal() {
+        Log.d(TAG, "16")
         val convertCategoryListLocale =
             mutableListOf<CategoryModel>()  //преобразованный Firebase лист
 
@@ -594,6 +616,7 @@ class HomeFragment : BaseFragment(),
 
 
     private fun pushNoteFirebase(it: NoteFirebase) {
+        Log.d(TAG, "17")
         if (checkConnectionFirebase()) {
             Log.d(TAG, "pushNewNoteFirebase: $it")
             databaseFirebase
@@ -612,6 +635,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun pushNoteListToFirebase(noteList: List<NoteFirebase>) {
+        Log.d(TAG, "18")
         if (checkConnectionFirebase()) {
             Log.e(TAG, "push list")
             noteList.forEach {
@@ -634,10 +658,12 @@ class HomeFragment : BaseFragment(),
         NoteBodyFirebase(it.title, it.text, it.dateToDo, it.deadline, it.isComplited, it.category)
 
     private fun updateHomeInfoFromFirebase() {
+        Log.d(TAG, "19")
         getDataFromFirebase()
     }
 
     private fun checkConnectionFirebase(): Boolean {
+        Log.d(TAG, "20")
         if (/*Firebase.auth.currentUser != user && !*/statusOffline) {
             Toast.makeText(
                 requireContext(),
@@ -653,6 +679,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun deleteAllNoteFirebase() {
+        Log.d(TAG, "21")
         if (checkConnectionFirebase()) {
             Log.e(TAG, "push list")
             databaseFirebase
@@ -687,6 +714,7 @@ class HomeFragment : BaseFragment(),
     //TODO LOCALE DATABASE--------------------------------------------------------------------------
 
     private fun initSpinnerFromLocalDb(list: List<CategoryModel>) {
+        Log.d(TAG, "22")
 
         val arrayList = arrayListOf<String>()
         list.forEach {
@@ -730,6 +758,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun initLocalDb() {
+        Log.d(TAG, "23")
         binding.swipeContainerHome.isRefreshing = true
         initDbJob = launch {
             val localData = withContext(Dispatchers.IO) {
@@ -778,6 +807,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun sortByCategoryLocalDb() {
+        Log.d(TAG, "24")
         binding.swipeContainerHome.isRefreshing = true
         sortByCategoryJob = launch {
             data = if (currentCategory == "-") {
@@ -796,6 +826,7 @@ class HomeFragment : BaseFragment(),
     }
 
     fun getCategoriesLocalDb() {
+        Log.d(TAG, "25")
         initCategoryJob = launch {
             dataFolders = withContext(Dispatchers.IO) {
                 db.categoryModelDao().getAll()
@@ -816,11 +847,13 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun reloadHomeInfoFromLocalDb() {
+        Log.d(TAG, "26")
         adapterHome.submitList(null)
         sortByCategoryLocalDb()
     }
 
     private fun updateNoteLocalDb(it: NoteModel) {
+        Log.d(TAG, "27")
         updateListJob = launch {
             withContext(Dispatchers.IO) {
                 db.noteModelDao().updateNote(it)
@@ -830,6 +863,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun updateListNoteLocalDb(noteList: List<NoteModel>) {
+        Log.d(TAG, "28")
         updateListJob = launch {
             withContext(Dispatchers.IO) {
                 db.noteModelDao().updateNoteList(noteList)
@@ -839,6 +873,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun insertListNoteLocalDb(noteList: List<NoteModel>) {
+        Log.d(TAG, "29")
         updateListJob = launch {
             withContext(Dispatchers.IO) {
                 db.noteModelDao().insertNoteList(noteList)
@@ -848,6 +883,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun insertListCategoryLocalDb(categoryList: List<CategoryModel>) {
+        Log.d(TAG, "30")
         updateListJob = launch {
             withContext(Dispatchers.IO) {
                 db.categoryModelDao().insertCategoryList(categoryList)
@@ -857,6 +893,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun updateListCategoryLocalDb(categoryList: List<CategoryModel>) {
+        Log.d(TAG, "31")
         updateListJob = launch {
             withContext(Dispatchers.IO) {
                 db.categoryModelDao().updateCategoryList(categoryList)
@@ -867,6 +904,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun insertNoteLocalDb(it: NoteModel) {
+        Log.d(TAG, "32")
         insertInDbJob = launch {
             withContext(Dispatchers.IO) {
                 db.noteModelDao().insertAll(it)
@@ -879,6 +917,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun deleteAndInsertNewNoteListLocalDb(noteList: List<NoteModel>) {
+        Log.d(TAG, "33")
         insertAndDeleteListJop = launch {
             withContext(Dispatchers.IO) {
 //                if (!data.isNullOrEmpty())
@@ -894,6 +933,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun deleteAllNoteLocalDb() {
+        Log.d(TAG, "34")
         deleteAllNoteJob = launch {
             withContext(Dispatchers.IO) {
                 db.noteModelDao().deleteNoteList(data)
@@ -903,13 +943,16 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun deleteAndInsertNewCategoryListLocalDb(categoryList: List<CategoryModel>) {
+        Log.d(TAG, "35")
         deleteAllCategoryJob = launch {
             withContext(Dispatchers.IO) {
-                if (!dataFolders.isNullOrEmpty())
+                if (!dataFolders.isNullOrEmpty()){
+                    Log.e(TAG, "deleteAndInsertNewCategoryListLocalDb: delete", )
                     db.categoryModelDao().deleteCategoryList(dataFolders)
+                }
             }
             withContext(Dispatchers.IO) {
-                db.categoryModelDao().insertCategoryList(categoryList)
+                db.categoryModelDao().updateCategoryList(categoryList)
             }
             getCategoriesLocalDb()
             sortByCategoryLocalDb()
@@ -917,6 +960,7 @@ class HomeFragment : BaseFragment(),
     }
 
     private fun setCompleteNoteLocalDb(it: NoteModel, position: Int) {
+        Log.d(TAG, "36")
         setCompleteJob = launch {
             withContext(Dispatchers.IO) {
                 db.noteModelDao().updateNote(it)
