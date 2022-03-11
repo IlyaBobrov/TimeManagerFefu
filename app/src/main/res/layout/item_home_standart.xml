@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/itemContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clItemContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="5dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="10dp">
+
+        <CheckBox
+            android:id="@+id/itemCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginStart="16dp"
+            android:button="@drawable/toggle"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:checked="true" />
+
+        <LinearLayout
+            android:id="@+id/itemDateContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/itemCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                app:layout_constraintEnd_toStartOf="@+id/itemDateContainer"
+                app:layout_constraintStart_toEndOf="@+id/itemCheckBox"
+                app:layout_constraintTop_toTopOf="parent"
+                android:textStyle="bold"
+                tools:text="Работа"
+                android:padding="3dp"/>
+
+            <TextView
+                android:id="@+id/itemDateStart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                tools:text="Начало: 16.08" />
+
+            <TextView
+                android:id="@+id/itemDateEnd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                tools:text="Конец: 17.09" />
+
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/itemTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/itemDateContainer"
+            app:layout_constraintStart_toEndOf="@+id/itemCheckBox"
+            app:layout_constraintTop_toBottomOf="@+id/itemCategory"
+            tools:text="Заголовок(max 2 lines)"
+            android:maxLines="2"
+            android:ellipsize="end"/>
+
+        <TextView
+            android:id="@+id/itemDescrioption"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:padding="10dp"
+            app:layout_constraintEnd_toStartOf="@+id/itemDateContainer"
+            app:layout_constraintStart_toEndOf="@+id/itemCheckBox"
+            app:layout_constraintTop_toBottomOf="@+id/itemTitle"
+            tools:text="Выводится 1 строка, а дальше троеточие."
+            android:maxLines="1"
+            android:ellipsize="end"
+            />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

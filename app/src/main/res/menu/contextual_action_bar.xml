@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/cabComplete"
+        android:icon="@android:drawable/checkbox_on_background"
+        android:title="@string/Complete"
+        android:contentDescription="@string/Complete"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/cabDelete"
+        android:icon="@android:drawable/ic_menu_delete"
+        android:title="@string/Delete"
+        android:contentDescription="@string/Delete"
+        app:showAsAction="never" />
+
+</menu>
